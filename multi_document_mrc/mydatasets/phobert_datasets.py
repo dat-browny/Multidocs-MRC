@@ -238,7 +238,7 @@ class ViMRCDatasetsForPhoBERT(ViMRCDatasetsForPhoBERTNoHap):
         #     raise ValueError(
         #         "`predictions` should be a tuple with two elements (start_logits, end_logits, has_answer_logits).")
         all_start_logits, all_end_logits, has_answer_logits = predictions[:3]
-        has_answer_probs = 1/(1 + np.exp(-has_answer_logits))
+        has_answer_probs = np.exp(-has_answer_logits[1])/sum(np.exp(-has_answer_logits))
         no_answer_probs = 1 - has_answer_probs
 
         if len(predictions[0]) != len(features):
