@@ -4,7 +4,8 @@ from transformers import (
     RobertaConfig,
     PreTrainedTokenizerFast,
     PreTrainedTokenizer,
-    EvalPrediction
+    EvalPrediction,
+    PreTrainedModel
 )
 from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection, ReflectionModel
 from dataclasses import dataclass
@@ -814,9 +815,10 @@ class ViMRCDatasetsV1bForPhoBERT(ViMRCDatasetsForPhoBERT):
         return inputs, context_map
 
 class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
-    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args: Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
+
+    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], data_args: Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, model_name_or_path: str = None, do_predict: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-        
+        self.model = ReflectionModel.from_pretrained(model_name_or_path, config=config)
     # def post_processing_function(self, examples, features, predictions, output_dir, log_level, stage="eval"):
     @staticmethod
     def postprocess_qa_predictions(
@@ -830,7 +832,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         output_dir: Optional[str] = None,
         prefix: Optional[str] = None,
         log_level: Optional[int] = logging.WARNING,
-        model_name_or_path: str = None,
+        model: PreTrainedModel = None,
     ):
         if len(predictions) != 5:
             raise ValueError(
@@ -983,7 +985,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 ans_type_ids[start_index] = 3
                 ans_type_ids[start_index+1:end_index+1] = 4
                 model = ReflectionModel.from_pretrained(model_name_or_path, config=config)
-                na_probs_ = model(input_ids=input_ids, ans_type_ids=ans_type_ids, head_features=head_feature)
+                na_probs_ = model(input_ids=input_ids, ans_type_ids=ans_type_ids, head_features=head_feature, return_dict=True)['ans_type_probs']
                 # Then we compare to the null prediction using the threshold.
 
                 if na_probs_ > 0.5:
@@ -1036,8 +1038,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         predictions,
         output_dir,
         log_level,
-        stage="eval"
-    ):
+        stage="eval",
+    ): 
         # Post-processing: we match the start logits and end logits to answers in the original context.
         predictions = self.postprocess_qa_predictions(
             examples=examples,
@@ -1050,6 +1052,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             output_dir=output_dir,
             log_level=log_level,
             prefix=stage,
+            model=self.model,
         )
         # Format the result to the format the metric expects.
 
@@ -1063,9 +1066,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         references = [{"id": ex["id"], "answers": ex[self.answer_column_name]} for ex in examples]
         return EvalPrediction(predictions=formatted_predictions, label_ids=references)
 
-
-
-            
 
 class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 

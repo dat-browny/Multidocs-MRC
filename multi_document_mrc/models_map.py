@@ -6,7 +6,8 @@ from multi_document_mrc.mydatasets.bert_datasets import MRCDatasetsForBERT
 from multi_document_mrc.mydatasets.phobert_datasets import (
     ViMRCDatasetsForPhoBERTNoHap,
     ViMRCDatasetsForPhoBERT,
-    ViMRCDatasetsV1bForPhoBERT
+    ViMRCDatasetsV1bForPhoBERT,
+    ViMRCDatasetsForPhoBERTNoHapReflection
 )
 from multi_document_mrc.models.roberta_mrc import (
     RobertaForQuestionAnswering,
@@ -79,7 +80,7 @@ MODELS_MAP = {
     ),
     "phobert-qa-reflection":VersionClassesMap(
         model_class=RobertaForMRCReflection,
-        dataset_class=ViMRCDatasetsForPhoBERT,
+        dataset_class=ViMRCDatasetsForPhoBERTNoHapReflection,
         config_class=RobertaConfig,
         tokenizer_class=PhobertTokenizerFast,
         description="Phobert Question Answering model, Has a Answer Prediction Layer, modify content title concatenation"
