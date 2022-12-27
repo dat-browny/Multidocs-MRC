@@ -20,6 +20,7 @@ import json
 logger = logging.getLogger(__name__)
 config = RobertaConfig.from_pretrained("vinai/phobert-base")
 
+
 class ViMRCDatasetsForPhoBERTNoHap(MRCDatasetsForBERT):
     use_wordsegment = True
     reader_class = SquadReader
@@ -234,11 +235,11 @@ class ViMRCDatasetsForPhoBERT(ViMRCDatasetsForPhoBERTNoHap):
             log_level (:obj:`int`, `optional`, defaults to ``logging.WARNING``):
                 ``logging`` log level (e.g., ``logging.WARNING``)
         """
-        # if len(predictions) != 3:
-        #     raise ValueError(
-        #         "`predictions` should be a tuple with two elements (start_logits, end_logits, has_answer_logits).")
-        all_start_logits, all_end_logits, has_answer_logits = predictions[:3]
-        has_answer_probs = np.exp(-has_answer_logits[1])/sum(np.exp(-has_answer_logits))
+        if len(predictions) != 3:
+            raise ValueError(
+                "`predictions` should be a tuple with two elements (start_logits, end_logits, has_answer_logits).")
+        all_start_logits, all_end_logits, has_answer_logits = predictions
+        has_answer_probs = 1/(1 + np.exp(-has_answer_logits))
         no_answer_probs = 1 - has_answer_probs
 
         if len(predictions[0]) != len(features):
@@ -815,7 +816,7 @@ class ViMRCDatasetsV1bForPhoBERT(ViMRCDatasetsForPhoBERT):
 class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
     def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args: Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-        self.reflection = ReflectionModel.from_pretrain(model_name_or_path, config=config)
+        
     # def post_processing_function(self, examples, features, predictions, output_dir, log_level, stage="eval"):
     @staticmethod
     def postprocess_qa_predictions(
@@ -829,6 +830,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         output_dir: Optional[str] = None,
         prefix: Optional[str] = None,
         log_level: Optional[int] = logging.WARNING,
+        model_name_or_path: str = None,
     ):
         if len(predictions) != 5:
             raise ValueError(
@@ -882,6 +884,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
             offset_mapping = features[feature_index]["offset_mapping"]
             token_is_max_context = features[feature_index].get("token_is_max_context", None)
+                
             start_indexes = np.argsort(start_logits)[-1: -n_best_size - 1: -1].tolist()
             end_indexes = np.argsort(end_logits)[-1: -n_best_size - 1: -1].tolist()
             for start_index in start_indexes:
@@ -967,22 +970,30 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                     if predictions[i]["text"] != "":
                         break
                 best_non_null_pred = predictions[i]
-
+                head_feature =  best_non_null_pred['head_features']
+                feature_index =  best_non_null_pred['feature_index']
+                start_index = best_non_null_pred['start_index']
+                end_index = best_non_null_pred['end_index']
+                input_ids = features[feature_index]['input_ids']
+                ans_type_ids = torch.tensor([0]*len(input_ids), device=input_ids.device)
+                if no_answer_probs[feature_index] < 0.5:
+                    ans_type_ids[0] = 2
+                else:
+                    ans_type_ids[0] = 1
+                ans_type_ids[start_index] = 3
+                ans_type_ids[start_index+1:end_index+1] = 4
+                model = ReflectionModel.from_pretrained(model_name_or_path, config=config)
+                na_probs_ = model(input_ids=input_ids, ans_type_ids=ans_type_ids, head_features=head_feature)
                 # Then we compare to the null prediction using the threshold.
-                score_diff = null_score - best_non_null_pred["start_logit"] - best_non_null_pred["end_logit"]
-                scores_diff_json[example["id"]] = float(score_diff)  # To be JSON-serializable.
-                if score_diff > null_score_diff_threshold:
+
+                if na_probs_ > 0.5:
                     all_predictions[example["id"]] = {"text": "", "na_prob": 1.0}
                 else:
                     all_predictions[example["id"]] = {
                         "text": best_non_null_pred["text"],
-                        "na_prob": best_non_null_pred["na_prob"],
-                        "head_feature": best_non_null_pred['head_features'],
-                        "feature_index": best_non_null_pred['feature_index'],
-                        "start_index": best_non_null_pred['start_index'],
-                        "end_index": best_non_null_pred['end_index']
+                        "na_prob": na_probs_
                     }
-            
+
             # Make `predictions` JSON-serializable by casting np.float back to float.
             all_nbest_json[example["id"]] = [
                 {k: (float(v) if isinstance(v, (np.float16, np.float32, np.float64)) else v) for k, v in pred.items()}

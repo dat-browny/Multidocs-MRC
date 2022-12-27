@@ -274,7 +274,7 @@ class ReflectionModel(RobertaModel):
 
         position_ids: Optional[torch.Tensor] = None,
 
-        has_answer_labels: torch.FloatTensor = None, 
+        has_answer_labels: Optional[torch.FloatTensor] = None, 
 
         head_mask: Optional[torch.Tensor] = None,
         inputs_embeds: Optional[torch.Tensor] = None,
@@ -389,8 +389,10 @@ class ReflectionModel(RobertaModel):
         features = torch.cat((sequence_output[:,0], head_features), 1)
         hidden_x = self.gelu(self.linear(features)) 
         ans_type_probs = self.sigmoid(torch.matmul(hidden_x, self.A))
-
-        loss = self.bce(ans_type_probs, has_answer_labels)
+        if has_answer_labels is not None:
+            loss = self.bce(ans_type_probs, has_answer_labels)
+        else: 
+            loss = None
         
         if not return_dict:
             output = (ans_type_probs) + encoder_outputs[2:]
