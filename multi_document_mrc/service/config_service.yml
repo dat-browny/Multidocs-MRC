@@ -1,0 +1,25 @@
+QUEUE_KEY: "knowledge_grounded_r_g_chatbot_queue"
+OUTPUT_KEY: "knowledge_grounded_r_g_chatbot_output"
+OUTPUT_TIMEOUT: 30 # seconds
+MAX_SEQ_LENGTH: 256
+MAX_KNOWLEDGES: 10
+BATCH_SIZE: 8
+DEFAULT_THRESHOLD: 0.5
+GPU_MEM_LIMIT: 2048_000_000
+REQUEST_TIMEOUT: 30 # seconds
+BREAK_TIME_BETWEEN_2_CALLS: 0.01
+SLEEP_BETWEEN_PUSH_GET: 0.05
+# internal container redis db
+INTERNAL_REDIS_HOST: "127.0.0.1"
+INTERNAL_REDIS_PORT: 6380
+INTERNAL_REDIS_DB: 2
+INTERNAL_REDIS_PW: null
+# external container redis db
+REDIS_HOST: null
+REDIS_PORT: null
+REDIS_DB: null
+REDIS_PW: null
+MODEL_PATH: "mrc_models"
+SERVICE_PORT: 5000
+SERVICE_HOST: "0.0.0.0"
+MODEL_VERSION: "1.0"

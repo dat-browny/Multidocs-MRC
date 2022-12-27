@@ -1,0 +1,31 @@
+version: '3.7'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: "hub.vnpt.vn/smartbot-prod/vnpt_multi_document_mrc:latest"
+    command:
+      [
+        "sh",
+        "-c",
+        "PYTHONIOENCODING='UTF-8' /bin/bash -c 'source activate vnpt && bash run_service.sh'"
+      ]
+    networks:
+      - bggpu
+
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - QUEUE_KEY="knowledge_grounded_r_g_chatbot_queue"
+      - OUTPUT_KEY="knowledge_grounded_r_g_chatbot_output"
+      - OUTPUT_TIMEOUT=30
+      - REQUEST_TIMEOUT=30
+      - GPU_MEM_LIMIT=2048_000_000
+      - BATCH_SIZE=8
+      - MAX_SEQ_LENGTH=256
+      - SLEEP_BETWEEN_PUSH_GET=0.02
+      - SERVICE_PORT=5000
+      - SERVICE_HOST="0.0.0.0"
+
+networks:
+  bggpu: null

@@ -1,0 +1,6 @@
+[flake8]
+max-line-length = 120
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,.venv,src,venv,docs/conf.py
+application-import-names=multi_document_mrc
+import-order-style=google
+filename = ./multi_document_mrc/*.py
