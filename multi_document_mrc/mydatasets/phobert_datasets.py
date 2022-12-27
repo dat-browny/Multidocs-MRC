@@ -234,10 +234,10 @@ class ViMRCDatasetsForPhoBERT(ViMRCDatasetsForPhoBERTNoHap):
             log_level (:obj:`int`, `optional`, defaults to ``logging.WARNING``):
                 ``logging`` log level (e.g., ``logging.WARNING``)
         """
-        if len(predictions) != 3:
-            raise ValueError(
-                "`predictions` should be a tuple with two elements (start_logits, end_logits, has_answer_logits).")
-        all_start_logits, all_end_logits, has_answer_logits = predictions
+        # if len(predictions) != 3:
+        #     raise ValueError(
+        #         "`predictions` should be a tuple with two elements (start_logits, end_logits, has_answer_logits).")
+        all_start_logits, all_end_logits, has_answer_logits = predictions[:3]
         has_answer_probs = 1/(1 + np.exp(-has_answer_logits))
         no_answer_probs = 1 - has_answer_probs
 
