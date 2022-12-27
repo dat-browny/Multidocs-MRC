@@ -121,7 +121,7 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
             total_loss = ha_loss + extractive_loss
         else:
             total_loss = None
-        
+
         start_index = [torch.argmax(i) for i in start_probs]
         end_index = [torch.argmax(i) for i in end_probs]
 
@@ -130,7 +130,7 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
                 - torch.matmul(self.S, sequence_output[i][0]) 
                 - torch.matmul(self.E, sequence_output[i][0]) 
                 for i in range(len(start_index))], device=input_ids.device).unsqueeze(-1).contiguous()
-                
+
         def normalize(batch_tensor):
             batch_tensor -= batch_tensor.min(1, keepdim=True)[0]
             batch_tensor /= batch_tensor.max(1, keepdim=True)[0]

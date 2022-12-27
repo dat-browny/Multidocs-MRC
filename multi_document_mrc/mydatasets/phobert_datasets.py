@@ -912,7 +912,9 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             "start_logit": start_logits[start_index],
                             "end_logit": end_logits[end_index],
                             "feature_index": feature_index,
-                            "head_features": head_feature
+                            "head_features": head_feature,
+                            "start_index": start_index,
+                            "end_index": end_index
                         }
                     )        
 
@@ -976,9 +978,11 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         "text": best_non_null_pred["text"],
                         "na_prob": best_non_null_pred["na_prob"],
                         "head_feature": best_non_null_pred['head_features'],
-                        "feature_index": best_non_null_pred['feature_index']
+                        "feature_index": best_non_null_pred['feature_index'],
+                        "start_index": best_non_null_pred['start_index'],
+                        "end_index": best_non_null_pred['end_index']
                     }
-
+            
             # Make `predictions` JSON-serializable by casting np.float back to float.
             all_nbest_json[example["id"]] = [
                 {k: (float(v) if isinstance(v, (np.float16, np.float32, np.float64)) else v) for k, v in pred.items()}
@@ -1038,10 +1042,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         )
         # Format the result to the format the metric expects.
 
-        head_feature = predictions['head_features']
-        feature_index = predictions['feature_index']
-
-        
         if self.data_args.version_2_with_negative:
             formatted_predictions = [
                 {"id": k, "prediction_text": v["text"], "no_answer_probability": v["na_prob"]} for k, v in predictions.items()
