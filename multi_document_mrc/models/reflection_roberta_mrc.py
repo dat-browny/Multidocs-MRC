@@ -116,8 +116,6 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
         else:
             total_loss = None
 
-        assert len(start_positions) == len(end_positions)
-
         score = torch.tensor([torch.matmul(self.S, sequence_output[i][start_positions[i]]) 
                 + torch.matmul(self.E, sequence_output[i][end_positions[i]]) 
                 - torch.matmul(self.S, sequence_output[i][0]) 
@@ -264,7 +262,7 @@ class ReflectionModel(RobertaModel):
         ans_type_ids: torch.Tensor = None,
 
         head_features: Optional[torch.Tensor] = None,
-        
+
         position_ids: Optional[torch.Tensor] = None,
 
         has_answer_labels: torch.FloatTensor = None, 
@@ -377,7 +375,7 @@ class ReflectionModel(RobertaModel):
             return_dict=return_dict,
         )
         sequence_output = encoder_outputs[0]
-        pooled_output = self.pooler(sequence_output) if self.pooler is not None else None
+        # pooled_output = self.pooler(sequence_output) if self.pooler is not None else None
 
         features = torch.cat((sequence_output[:,0], head_features), 1)
         hidden_x = self.gelu(self.linear(features)) 

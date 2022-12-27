@@ -1,11 +1,12 @@
 from multi_document_mrc.utils.read_data import SquadReader, SquadReaderV1b
 from multi_document_mrc.mydatasets.bert_datasets import MRCDatasetsForBERT
 from transformers import (
+    RobertaConfig,
     PreTrainedTokenizerFast,
     PreTrainedTokenizer,
     EvalPrediction
 )
-from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection
+from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection, ReflectionModel
 from dataclasses import dataclass
 from typing import Union, Optional, Tuple, List
 import logging
@@ -17,7 +18,7 @@ import os
 import json
 
 logger = logging.getLogger(__name__)
-
+config = RobertaConfig.from_pretrained("vinai/phobert-base")
 
 class ViMRCDatasetsForPhoBERTNoHap(MRCDatasetsForBERT):
     use_wordsegment = True
@@ -812,7 +813,9 @@ class ViMRCDatasetsV1bForPhoBERT(ViMRCDatasetsForPhoBERT):
         return inputs, context_map
 
 class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
-
+    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args: Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
+        super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
+        self.reflection = ReflectionModel.from_pretrain(model_name_or_path, config=config)
     # def post_processing_function(self, examples, features, predictions, output_dir, log_level, stage="eval"):
     @staticmethod
     def postprocess_qa_predictions(
@@ -1011,15 +1014,49 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
         return all_predictions
 
+    def post_processing_function(
+        self,
+        examples,
+        features,
+        predictions,
+        output_dir,
+        log_level,
+        stage="eval"
+    ):
+        # Post-processing: we match the start logits and end logits to answers in the original context.
+        predictions = self.postprocess_qa_predictions(
+            examples=examples,
+            features=features,
+            predictions=predictions,
+            version_2_with_negative=self.data_args.version_2_with_negative,
+            n_best_size=self.data_args.n_best_size,
+            max_answer_length=self.data_args.max_answer_length,
+            null_score_diff_threshold=self.data_args.null_score_diff_threshold,
+            output_dir=output_dir,
+            log_level=log_level,
+            prefix=stage,
+        )
+        # Format the result to the format the metric expects.
+        if self.data_args.version_2_with_negative:
+            formatted_predictions = [
+                {"id": k, "prediction_text": v["text"], "no_answer_probability": v["na_prob"]} for k, v in predictions.items()
+            ]
+        else:
+            formatted_predictions = [{"id": k, "prediction_text": v} for k, v in predictions.items()]
+
+        references = [{"id": ex["id"], "answers": ex[self.answer_column_name]} for ex in examples]
+        return EvalPrediction(predictions=formatted_predictions, label_ids=references)
 
 
 
             
 
 class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
+
     def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-        self.MRCModel = RobertaForMRCReflection.from_pretrained(model_name_or_path)
+        self.MRCModel = RobertaForMRCReflection.from_pretrained(model_name_or_path, config=config)
+    
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
@@ -1140,3 +1177,32 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                 ans_type_id[start_position-1:end_position+1] = 4
             tokenized_examples_['ans_type_ids'].append(ans_type_id)
         return tokenized_examples_
+    
+    def prepare_validation_features(self, examples):
+        prefix_contexts = [
+            f"{question} {self.tokenizer.sep_token} Tiêu_đề : {title} . Nội_dung :"
+            for question, title in zip(examples[self.question_column_name], examples[self.title_column_name])
+        ]
+        contexts = [
+            f"{prefix_s} {context}"
+            for prefix_s, context in zip(prefix_contexts, examples[self.context_column_name])
+        ]
+
+        tokenized_examples = self.tokenizer(
+            contexts,
+            truncation=True,
+            max_length=self.max_seq_length,
+            return_offsets_mapping=True,
+            padding="max_length" if self.data_args.pad_to_max_length else False,
+        )
+
+        prefix_ids_lens = [len(self.tokenizer.tokenize(s))+1 for s in prefix_contexts]
+        prefix_mask = [
+            [-10000] * x + [0] * (self.max_seq_length-x)
+            for x in prefix_ids_lens
+        ]
+        tokenized_examples["prefix_mask"] = prefix_mask
+        tokenized_examples["new_context"] = contexts
+        tokenized_examples["example_id"] = examples["id"]
+
+        return tokenized_examples
