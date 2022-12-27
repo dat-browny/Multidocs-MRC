@@ -106,6 +106,12 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
             end_loss = sum([-torch.log(end_probs[i][ground_truth_end]) for i, ground_truth_end in enumerate(end_positions)])
             extractive_loss = (start_loss + end_loss) 
 
+            score = torch.tensor([torch.matmul(self.S, sequence_output[i][start_positions[i]]) 
+                    + torch.matmul(self.E, sequence_output[i][end_positions[i]]) 
+                    - torch.matmul(self.S, sequence_output[i][0]) 
+                    - torch.matmul(self.E, sequence_output[i][0]) 
+                    for i in range(len(start_positions))], device=input_ids.device).unsqueeze(-1).contiguous()
+
         if has_answer_labels is not None:
             if len(has_answer_labels.size()) > 1:
                 has_answer_labels = has_answer_labels.squeeze(-1)
@@ -115,13 +121,16 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
             total_loss = ha_loss + extractive_loss
         else:
             total_loss = None
+        
+        start_index = [torch.argmax(i) for i in start_probs]
+        end_index = [torch.argmax(i) for i in end_probs]
 
-        score = torch.tensor([torch.matmul(self.S, sequence_output[i][start_positions[i]]) 
-                + torch.matmul(self.E, sequence_output[i][end_positions[i]]) 
+        score = torch.tensor([torch.matmul(self.S, sequence_output[i][start_index[i]]) 
+                + torch.matmul(self.E, sequence_output[i][end_index[i]]) 
                 - torch.matmul(self.S, sequence_output[i][0]) 
                 - torch.matmul(self.E, sequence_output[i][0]) 
-                for i in range(len(start_positions))], device=input_ids.device).unsqueeze(-1).contiguous()
-
+                for i in range(len(start_index))], device=input_ids.device).unsqueeze(-1).contiguous()
+                
         def normalize(batch_tensor):
             batch_tensor -= batch_tensor.min(1, keepdim=True)[0]
             batch_tensor /= batch_tensor.max(1, keepdim=True)[0]

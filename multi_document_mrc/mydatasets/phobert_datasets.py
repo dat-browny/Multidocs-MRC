@@ -1037,6 +1037,11 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             prefix=stage,
         )
         # Format the result to the format the metric expects.
+
+        head_feature = predictions['head_features']
+        feature_index = predictions['feature_index']
+
+        
         if self.data_args.version_2_with_negative:
             formatted_predictions = [
                 {"id": k, "prediction_text": v["text"], "no_answer_probability": v["na_prob"]} for k, v in predictions.items()
