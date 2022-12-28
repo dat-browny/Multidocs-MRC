@@ -1153,7 +1153,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                     tokenized_examples["end_positions"].append(token_end_index + 1)
                     tokenized_examples["has_answer_labels"].append(1)
         
-        for k, v in tokenized_examples:
+        for k, v in tokenized_examples.items():
             tokenized_examples[k] = torch.tensor(v, device=self.device)
         print("==================================")
         print(type(tokenized_examples['input_ids']))
