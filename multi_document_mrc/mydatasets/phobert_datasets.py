@@ -169,8 +169,6 @@ class ViMRCDatasetsForPhoBERT(ViMRCDatasetsForPhoBERTNoHap):
         doc_stride = 128
         pad_on_right = True
         examples[question_column_name] = [q.lstrip() for q in examples[question_column_name]]
-        print(len(examples[question_column_name]))
-        print(len(examples[context_column_name]))
         # Tokenize our examples with truncation and maybe padding, but keep the overflows using a stride. This results
         # in one example possible giving several features when a context is long, each of those features having a
         # context that overlaps a bit the context of the previous feature.
@@ -1126,13 +1124,13 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.MRCModel = RobertaForMRCReflection.from_pretrained(model_name_or_path, config=config).to(self.device)
-    
+
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
         # left whitespace
         examples[self.question_column_name] = [q.lstrip() for q in examples[self.question_column_name]]
-
+        print(len(examples))
         # Tokenize our examples with truncation and maybe padding, but keep the overflows using a stride. This results
         # in one example possible giving several features when a context is long, each of those features having a
         # context that overlaps a bit the context of the previous feature.
@@ -1218,7 +1216,9 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                                 return_dict=True)
 
         x = Dataset.from_dict(dict(examples))
-
+        for feature in x.features:
+            print(len(x[feature]))
+        print(x)
         features = x.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features_reflection)
 
         instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer).postprocess_qa_predictions(examples=examples, 
