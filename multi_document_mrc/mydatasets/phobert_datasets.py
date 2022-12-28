@@ -1151,7 +1151,9 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                         token_end_index -= 1
                     tokenized_examples["end_positions"].append(token_end_index + 1)
                     tokenized_examples["has_answer_labels"].append(1)
-        
+        print(type(tokenized_examples['input_ids']))
+
+        print(tokenized_examples['input_ids'].device)
         with torch.no_grad(): 
         #Dungf postprocess cua model MRC de gen instance training cho model nay
             predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
