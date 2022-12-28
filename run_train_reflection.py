@@ -144,17 +144,9 @@ def main():
         do_train=training_args.do_train,
         do_eval=training_args.do_eval,
         do_predict=training_args.do_predict,
-        # model_name_or_path
+        model_name_or_path=model_args.model_name_or_path
     )
     ########################################################################
-
-
-
-
-
-
-
-
 
     train_dataset = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
