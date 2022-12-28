@@ -865,8 +865,11 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             feature_indices = features_per_example[example_index]
             print(feature_indices)
             feature_index_with_best_score=[]
+            print(index)
+            print(scores[index])
+
             for index in feature_indices:
-                feature_index_with_best_score.append((index, scores[index]))
+                feature_index_with_best_score.append([index, scores[index]])
 
             feature_index = sorted(feature_index_with_best_score, key=lambda x: x[1], reverse=True)[0][0]
             prelim_predictions = []
