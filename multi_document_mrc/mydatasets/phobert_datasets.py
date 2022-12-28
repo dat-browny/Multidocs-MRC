@@ -169,7 +169,8 @@ class ViMRCDatasetsForPhoBERT(ViMRCDatasetsForPhoBERTNoHap):
         doc_stride = 128
         pad_on_right = True
         examples[question_column_name] = [q.lstrip() for q in examples[question_column_name]]
-
+        print(len(examples[question_column_name]))
+        print(len(examples[context_column_name]))
         # Tokenize our examples with truncation and maybe padding, but keep the overflows using a stride. This results
         # in one example possible giving several features when a context is long, each of those features having a
         # context that overlaps a bit the context of the previous feature.
@@ -1217,8 +1218,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                                 return_dict=True)
 
         x = Dataset.from_dict(dict(examples))
-        for key in x.features:
-            print(len(x[key]))
+
         features = x.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features_reflection)
 
         instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer).postprocess_qa_predictions(examples=examples, 
