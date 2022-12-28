@@ -838,7 +838,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             raise ValueError(
                 "`predictions` should be a tuple with five elements (start_logits, end_logits, has_answer_logits, score, head_features).")
         all_start_logits, all_end_logits, has_answer_probs, scores, head_features = predictions
-
+        print(len(examples))
         print(scores)
         print(scores.shape)
         no_answer_probs = has_answer_probs[:,0]
