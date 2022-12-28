@@ -851,6 +851,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         for i, feature in enumerate(features):
             features_per_example[example_id_to_index[feature["example_id"]]].append(i)
 
+        print(features_per_example)
+
         all_predictions = collections.OrderedDict()
         all_nbest_json = collections.OrderedDict()
         if version_2_with_negative:
@@ -859,9 +861,12 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         logger.setLevel(log_level)
         logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
         for example_index, example in enumerate(tqdm(examples)):
+            print(example_index, example)
             # Those are the indices of the features associated to the current example.
             feature_indices = features_per_example[example_index]
+            print(feature_indices)
 
+            
             feature_index_with_best_score = [(index, scores[index]) for index in feature_indices]
 
             feature_index = sorted(feature_index_with_best_score, key=lambda x: x[1], reverse=True)[0][0]
