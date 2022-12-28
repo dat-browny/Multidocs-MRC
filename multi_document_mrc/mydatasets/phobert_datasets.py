@@ -10,6 +10,7 @@ from transformers import (
 from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection, ReflectionModel
 from dataclasses import dataclass
 from typing import Union, Optional, Tuple, List
+from datasets import Dataset
 import logging
 import torch
 import numpy as np
@@ -1165,8 +1166,11 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                                 has_answer_labels=tokenized_examples['has_answer_labels'], 
                                 return_dict=True)
 
-        print(examples)
-        print(type(examples))
+        x = Dataset(examples)
+        print(type(x))
+
+        
+
         features = examples.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features)
         instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer).postprocess_qa_predictions(examples=examples, 
                             features=features, 
