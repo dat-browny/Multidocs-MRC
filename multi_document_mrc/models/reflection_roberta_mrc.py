@@ -389,6 +389,7 @@ class ReflectionModel(RobertaModel):
         features = torch.cat((sequence_output[:,0], head_features), 1)
         hidden_x = self.gelu(self.linear(features)) 
         ans_type_probs = self.sigmoid(torch.matmul(hidden_x, self.A))
+        
         if has_answer_labels is not None:
             loss = self.bce(ans_type_probs, has_answer_labels)
         else: 

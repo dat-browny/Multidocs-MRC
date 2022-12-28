@@ -864,7 +864,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
             feature_index = sorted(feature_index_with_best_score, key=lambda x: x[1], reverse=True)[0][0]
             prelim_predictions = []
-
+            min_null_prediction = None
             # Looping through all the features associated to the current example.
             # for feature_index in feature_indices:
                 # We grab the predictions of the model for this feature.
@@ -984,7 +984,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                     ans_type_ids[0] = 1
                 ans_type_ids[start_index] = 3
                 ans_type_ids[start_index+1:end_index+1] = 4
-                model = ReflectionModel.from_pretrained(model_name_or_path, config=config)
                 na_probs_ = model(input_ids=input_ids, ans_type_ids=ans_type_ids, head_features=head_feature, return_dict=True)['ans_type_probs']
                 # Then we compare to the null prediction using the threshold.
 
