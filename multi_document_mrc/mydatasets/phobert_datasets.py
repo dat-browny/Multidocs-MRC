@@ -1156,8 +1156,6 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         
         for k, v in tokenized_examples.items():
             tokenized_examples[k] = torch.tensor(v, device=self.device)
-        print("==================================")
-        print(type(tokenized_examples['input_ids']))
         with torch.no_grad(): 
         #Dungf postprocess cua model MRC de gen instance training cho model nay
             predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
@@ -1166,12 +1164,13 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                                 has_answer_labels=tokenized_examples['has_answer_labels'], 
                                 return_dict=True)
 
-        x = Dataset(examples)
+        x = Dataset(dict(examples))
         print(type(x))
 
         
 
         features = examples.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features)
+
         instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer).postprocess_qa_predictions(examples=examples, 
                             features=features, 
                             predictions=predictions,
