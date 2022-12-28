@@ -1070,7 +1070,8 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
     def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-        self.MRCModel = RobertaForMRCReflection.from_pretrained(model_name_or_path, config=config)
+        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        self.MRCModel = RobertaForMRCReflection.from_pretrained(model_name_or_path, config=config).to(self.device)
     
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
@@ -1151,9 +1152,11 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                         token_end_index -= 1
                     tokenized_examples["end_positions"].append(token_end_index + 1)
                     tokenized_examples["has_answer_labels"].append(1)
+        
+        for k, v in tokenized_examples:
+            tokenized_examples[k] = torch.tensor(v, device=self.device)
         print("==================================")
-        print(next(self.MRCModel.parameters()).is_cuda)
-        print("==================================")
+        print(type(tokenized_examples['input_ids']))
         with torch.no_grad(): 
         #Dungf postprocess cua model MRC de gen instance training cho model nay
             predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
