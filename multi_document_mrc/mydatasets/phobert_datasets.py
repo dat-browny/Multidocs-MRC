@@ -1165,6 +1165,8 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                                 has_answer_labels=tokenized_examples['has_answer_labels'], 
                                 return_dict=True)
 
+        print(examples)
+        print(type(examples))
         features = examples.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features)
         instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer).postprocess_qa_predictions(examples=examples, 
                             features=features, 
