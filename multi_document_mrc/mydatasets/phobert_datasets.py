@@ -1217,7 +1217,8 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                                 return_dict=True)
 
         x = Dataset.from_dict(dict(examples))
-
+        for key in x.features:
+            print(len(x[key]))
         features = x.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features_reflection)
 
         instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer).postprocess_qa_predictions(examples=examples, 
