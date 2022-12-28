@@ -839,9 +839,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 "`predictions` should be a tuple with five elements (start_logits, end_logits, has_answer_logits, score, head_features).")
         all_start_logits, all_end_logits, has_answer_probs, scores, head_features = predictions
         no_answer_probs = has_answer_probs[:,0]
-        for i in range(50):
-            print(i)
-            print(scores[i])
+
         if len(predictions[0]) != len(features):
             raise ValueError(f"Got {len(predictions[0])} predictions and {len(features)} features.")
 
@@ -849,8 +847,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         features_per_example = collections.defaultdict(list)
         for i, feature in enumerate(features):
             features_per_example[example_id_to_index[feature["example_id"]]].append(i)
-
-        print(features_per_example)
 
         all_predictions = collections.OrderedDict()
         all_nbest_json = collections.OrderedDict()
@@ -864,11 +860,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             feature_indices = features_per_example[example_index]
             feature_index_with_best_score=[]
 
-
-            for index in feature_indices:
-                print(index)
-                print(scores[index])
-                feature_index_with_best_score.append([index, scores[index]])
+            feature_index_with_best_score.append([index, scores[index]] for index in feature_indices)
 
             feature_index = sorted(feature_index_with_best_score, key=lambda x: x[1], reverse=True)[0][0]
             prelim_predictions = []

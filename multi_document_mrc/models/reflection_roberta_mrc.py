@@ -6,7 +6,7 @@ from transformers.models.roberta.modeling_roberta import (
     BaseModelOutputWithPoolingAndCrossAttentions,
     QuestionAnsweringModelOutput
 )
-from transformers.modeling_outputs import QuestionAnsweringModelOutput
+from transformers.modeling_outputs import QuestionAnsweringModelOutput, SequenceClassifierOutput
 from torch import nn
 from dataclasses import dataclass
 from typing import Optional, Tuple, Union, List
@@ -408,7 +408,7 @@ class ReflectionModel(RobertaModel):
 
 
 @dataclass
-class ReflectionModelOutput(QuestionAnsweringModelOutput):
+class ReflectionModelOutput(SequenceClassifierOutput):
     loss: Optional[torch.FloatTensor] = None
     ans_type_probs: torch.Tensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
