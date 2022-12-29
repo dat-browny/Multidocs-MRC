@@ -910,9 +910,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         logger.setLevel(log_level)
         logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
         for example_index, example in enumerate(tqdm(examples)):
-            print("==========================================================================================================")
-            print(example)
-            print("==========================================================================================================")
             # Those are the indices of the features associated to the current example.
             feature_indices = features_per_example[example_index]
 
@@ -1023,12 +1020,11 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             if not version_2_with_negative:
                 all_predictions[example["id"]] = predictions[0]["text"]
             else:
-                NO_ANSWER_THRESHOLD = 0.5
-                predictions = [p for p in predictions if p["na_prob"] < NO_ANSWER_THRESHOLD or p["text"] == ""]
                 # Otherwise we first need to find the best non-empty prediction.
                 for i in range(len(predictions)):
                     if predictions[i]["text"] != "":
                         break
+                print(predictions[i])
                 best_non_null_pred = predictions[i]
                 head_feature =  best_non_null_pred['head_features']
                 feature_index =  best_non_null_pred['feature_index']
