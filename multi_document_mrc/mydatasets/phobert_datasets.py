@@ -1254,7 +1254,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
             tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
             tokenized_examples_['attention_mask'].append(tokenized_examples['attention_mask'][feature_slice])
             tokenized_examples_['head_features'].append(head_features[id])
-            start_position = tokenized_examples['start_postions'][feature_slice]
+            start_position = tokenized_examples['start_positions'][feature_slice]
             end_position = tokenized_examples['end_positions'][feature_slice]
             ans_type_id = [0]*self.max_seq_length
             if tokenized_examples_[-1] == 0:
