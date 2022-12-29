@@ -939,9 +939,9 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             offset_mapping = features[feature_index]["offset_mapping"]
             token_is_max_context = features[feature_index].get("token_is_max_context", None)
             start_indexes = torch.argsort(start_logits.cpu())[-n_best_size:: 1].tolist()
-            start_index.reverse()
+            start_indexes.reverse()
             end_indexes = np.argsort(end_logits.cpu())[-n_best_size:: 1].tolist()
-            end_index.reverse()
+            end_indexes.reverse()
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
