@@ -885,6 +885,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         prefix: Optional[str] = None,
         log_level: Optional[int] = logging.WARNING,
         model: PreTrainedModel = None,
+        is_training_reflection = None
     ):
         if len(predictions) != 5:
             raise ValueError(
@@ -912,8 +913,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             feature_indices = features_per_example[example_index]
 
             feature_index_with_best_score = collections.UserList([index, scores[index]] for index in feature_indices)
-            print('============================')
-            print(feature_index_with_best_score)
+
             feature_index = sorted(feature_index_with_best_score, key=lambda x: x[1], reverse=True)[0][0]
             prelim_predictions = []
             min_null_prediction = None
@@ -939,8 +939,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             offset_mapping = features[feature_index]["offset_mapping"]
             token_is_max_context = features[feature_index].get("token_is_max_context", None)
                 
-            start_indexes = np.argsort(start_logits)[-1: -n_best_size - 1: -1].tolist()
-            end_indexes = np.argsort(end_logits)[-1: -n_best_size - 1: -1].tolist()
+            start_indexes = np.argsort(start_logits.cpu())[-1: -n_best_size - 1: -1].tolist()
+            end_indexes = np.argsort(end_logits.cpu())[-1: -n_best_size - 1: -1].tolist()
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
@@ -1026,26 +1026,32 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 best_non_null_pred = predictions[i]
                 head_feature =  best_non_null_pred['head_features']
                 feature_index =  best_non_null_pred['feature_index']
-                start_index = best_non_null_pred['start_index']
-                end_index = best_non_null_pred['end_index']
-                input_ids = features[feature_index]['input_ids']
-                ans_type_ids = torch.tensor([0]*len(input_ids), device=input_ids.device)
-                if no_answer_probs[feature_index] < 0.5:
-                    ans_type_ids[0] = 2
-                else:
-                    ans_type_ids[0] = 1
-                ans_type_ids[start_index] = 3
-                ans_type_ids[start_index+1:end_index+1] = 4
-                na_probs_ = model(input_ids=input_ids, ans_type_ids=ans_type_ids, head_features=head_feature, return_dict=True)['ans_type_probs']
-                # Then we compare to the null prediction using the threshold.
-
-                if na_probs_ > 0.5:
-                    all_predictions[example["id"]] = {"text": "", "na_prob": 1.0}
-                else:
+                if is_training_reflection:
                     all_predictions[example["id"]] = {
-                        "text": best_non_null_pred["text"],
-                        "na_prob": na_probs_
+                        "head_features": head_feature,
+                        "feature_index": feature_index
                     }
+                else:
+                    start_index = best_non_null_pred['start_index']
+                    end_index = best_non_null_pred['end_index']
+                    input_ids = features[feature_index]['input_ids']
+                    ans_type_ids = torch.tensor([0]*len(input_ids), device=input_ids.device)
+                    if no_answer_probs[feature_index] < 0.5:
+                        ans_type_ids[0] = 2
+                    else:
+                        ans_type_ids[0] = 1
+                    ans_type_ids[start_index] = 3
+                    ans_type_ids[start_index+1:end_index+1] = 4
+                    na_probs_ = model(input_ids=input_ids, ans_type_ids=ans_type_ids, head_features=head_feature, return_dict=True)['ans_type_probs']
+                    # Then we compare to the null prediction using the threshold.
+
+                    if na_probs_ > 0.5:
+                        all_predictions[example["id"]] = {"text": "", "na_prob": 1.0}
+                    else:
+                        all_predictions[example["id"]] = {
+                            "text": best_non_null_pred["text"],
+                            "na_prob": na_probs_
+                        }
 
             # Make `predictions` JSON-serializable by casting np.float back to float.
             all_nbest_json[example["id"]] = [
@@ -1226,7 +1232,8 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer, model_name_or_path=self.model_name_or_path).postprocess_qa_predictions(examples=examples, 
                             features=features, 
                             predictions=predictions,
-                            version_2_with_negative=True)
+                            version_2_with_negative=True,
+                            is_training_reflection=True)
 
         head_features = instance_training['head_features']
         feature_index = instance_training['features_index']
