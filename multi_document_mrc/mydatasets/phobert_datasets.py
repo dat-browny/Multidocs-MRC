@@ -906,12 +906,13 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         all_nbest_json = collections.OrderedDict()
         if version_2_with_negative:
             scores_diff_json = collections.OrderedDict()
-        print("==========================================================================================================")
-        print(examples)
-        print("==========================================================================================================")
+
         logger.setLevel(log_level)
         logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
         for example_index, example in enumerate(tqdm(examples)):
+            print("==========================================================================================================")
+            print(example)
+            print("==========================================================================================================")
             # Those are the indices of the features associated to the current example.
             feature_indices = features_per_example[example_index]
 
