@@ -887,6 +887,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         model: PreTrainedModel = None,
         is_training_reflection = None
     ):
+
         if len(predictions) != 5:
             raise ValueError(
                 "`predictions` should be a tuple with five elements (start_logits, end_logits, has_answer_logits, score, head_features).")
@@ -905,7 +906,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         all_nbest_json = collections.OrderedDict()
         if version_2_with_negative:
             scores_diff_json = collections.OrderedDict()
-
+        print("==========================================================================================================")
+        print(example)
         logger.setLevel(log_level)
         logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
         for example_index, example in enumerate(tqdm(examples)):
@@ -993,8 +995,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 predictions.append(min_null_prediction)
 
             # Use the offsets to gather the answer text in the original context.
-            print("==========================================================================================================")
-            print(example)
+
             context = example["context"]
             for pred in predictions:
                 offsets = pred.pop("offsets")
