@@ -910,8 +910,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         for example_index, example in enumerate(tqdm(examples)):
             # Those are the indices of the features associated to the current example.
             feature_indices = features_per_example[example_index]
-            print("=================================================")
-            print(feature_indices)
+            new_score = [scores(index) for index in feature_indices]
+            print(new_score)
             feature_index_with_best_score = []
 
             feature_index_with_best_score.append([index, scores[index]] for index in feature_indices)
@@ -1219,7 +1219,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                                 return_dict=True)
 
         predictions = (predictions['start_logits'],predictions['end_logits'],predictions['has_answer_probs'],predictions['score'],predictions['head_features'])
-        print(len(predictions))
+
         x = Dataset.from_dict(dict(examples))
         features = x.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features_reflection,
                         batched=True,
