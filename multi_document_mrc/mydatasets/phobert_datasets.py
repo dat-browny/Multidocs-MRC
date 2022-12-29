@@ -1245,7 +1245,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         tokenized_examples_ = {}
         tokenized_examples_['input_ids'] = []
         tokenized_examples_['ans_type_ids'] = []
-        tokenized_examples_['has_answer_labels'] = []
+        # tokenized_examples_['has_answer_labels'] = []
         tokenized_examples_['attention_mask'] = []
         tokenized_examples_['head_features'] = []
         for id, feature_slice in enumerate(feature_index):
