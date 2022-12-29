@@ -1234,16 +1234,8 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         features = x.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features_reflection,
                         batched=True,
                         remove_columns=x.features)
-
-
-
-
-        # print(examples)
-
-
-
-
-
+        print('======================================================================================')
+        print(x)
         instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer, model_name_or_path=self.model_name_or_path).postprocess_qa_predictions(examples=examples, 
                             features=features, 
                             predictions=predictions,
