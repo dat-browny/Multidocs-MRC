@@ -907,7 +907,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         if version_2_with_negative:
             scores_diff_json = collections.OrderedDict()
         print("==========================================================================================================")
-        print(example)
+        print(examples)
+        print("==========================================================================================================")
         logger.setLevel(log_level)
         logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
         for example_index, example in enumerate(tqdm(examples)):
