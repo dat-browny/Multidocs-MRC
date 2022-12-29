@@ -1256,10 +1256,10 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
             start_position = tokenized_examples['start_positions'][feature_slice]
             end_position = tokenized_examples['end_positions'][feature_slice]
             ans_type_id = torch.tensor([0]*self.max_seq_length)
-            if tokenized_examples_['has_answer_labels'][-1] == 0:
-                ans_type_id[0] = 1
-            else:
-                ans_type_id[0] = 2
+            # if tokenized_examples_['has_answer_labels'][-1] == 0:
+            #     ans_type_id[0] = 1
+            # else:
+            #     ans_type_id[0] = 2
             if start_position < end_position:
                 ans_type_id[start_position] = 3
                 ans_type_id[start_position+1:end_position+1] = 4
