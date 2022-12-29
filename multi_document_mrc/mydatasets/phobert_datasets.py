@@ -993,6 +993,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 predictions.append(min_null_prediction)
 
             # Use the offsets to gather the answer text in the original context.
+            print("==========================================================================================================")
             print(example)
             context = example["context"]
             for pred in predictions:
@@ -1234,7 +1235,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
 
 
-        print(examples)
+        # print(examples)
 
 
 
