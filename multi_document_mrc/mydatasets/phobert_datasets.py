@@ -1265,6 +1265,8 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                 ans_type_id[start_position] = 3
                 ans_type_id[start_position-1:end_position+1] = 4
             tokenized_examples_['ans_type_ids'].append(ans_type_id)
+        print(type(tokenized_examples_))
+        print(tokenized_examples_)
         return tokenized_examples_
     
     def prepare_validation_features(self, examples):
