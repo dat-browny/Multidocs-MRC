@@ -1008,13 +1008,13 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
             # Compute the softmax of all scores (we do it with numpy to stay independent from torch/tf in this file, using
             # the LogSumExp trick).
-            scores_ = np.array([pred.pop("score").cpu() for pred in predictions])
-            exp_scores = np.exp(scores_ - np.max(scores_))
-            probs = exp_scores / exp_scores.sum()
+            # scores_ = np.array([pred.pop("score").cpu() for pred in predictions])
+            # exp_scores = np.exp(scores_ - np.max(scores_))
+            # probs = exp_scores / exp_scores.sum()
 
-            # Include the probabilities in our predictions.
-            for prob, pred in zip(probs, predictions):
-                pred["probability"] = prob
+            # # Include the probabilities in our predictions.
+            # for prob, pred in zip(probs, predictions):
+            #     pred["probability"] = prob
 
             # Pick the best prediction. If the null answer is not possible, this is easy.
             if not version_2_with_negative:
