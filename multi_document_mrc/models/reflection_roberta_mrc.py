@@ -390,6 +390,9 @@ class ReflectionModel(RobertaModel):
         hidden_x = self.gelu(self.linear(features)) 
         ans_type_probs = self.sigmoid(torch.matmul(hidden_x, self.A))
         
+
+        print(type(ans_type_probs))
+        print(type(has_answer_labels))
         if has_answer_labels is not None:
             loss = self.bce(ans_type_probs, has_answer_labels)
         else: 
@@ -410,7 +413,7 @@ class ReflectionModel(RobertaModel):
 @dataclass
 class ReflectionModelOutput(SequenceClassifierOutput):
     loss: Optional[torch.FloatTensor] = None
-    ans_type_probs: torch.Tensor = None
+    ans_type_probs: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
     attentions: Optional[Tuple[torch.FloatTensor]] = None
 
