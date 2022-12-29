@@ -976,7 +976,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             "end_index": end_index
                         }
                     )        
-
+            print(prelim_predictions)
             if version_2_with_negative and min_null_prediction is not None:
                 # Add the minimum null prediction
                 prelim_predictions.append(min_null_prediction)
