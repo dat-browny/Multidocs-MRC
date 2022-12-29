@@ -1142,7 +1142,6 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
         # left whitespace
         examples[self.question_column_name] = [q.lstrip() for q in examples[self.question_column_name]]
-        print(len(examples))
         # Tokenize our examples with truncation and maybe padding, but keep the overflows using a stride. This results
         # in one example possible giving several features when a context is long, each of those features having a
         # context that overlaps a bit the context of the previous feature.
@@ -1251,7 +1250,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         tokenized_examples_['head_features'] = []
         for id, feature_slice in enumerate(feature_index):
             tokenized_examples_['input_ids'].append(tokenized_examples['input_ids'][feature_slice])
-            tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
+            # tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
             tokenized_examples_['attention_mask'].append(tokenized_examples['attention_mask'][feature_slice])
             tokenized_examples_['head_features'].append(head_features[id])
             start_position = tokenized_examples['start_positions'][feature_slice]
@@ -1260,13 +1259,13 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
             if tokenized_examples_['has_answer_labels'][-1] == 0:
                 ans_type_id[0] = 1
             else:
-                ans_type_id[1] = 2
+                ans_type_id[0] = 2
             if start_position < end_position:
                 ans_type_id[start_position] = 3
-                ans_type_id[start_position-1:end_position+1] = 4
+                ans_type_id[start_position+1:end_position+1] = 4
             tokenized_examples_['ans_type_ids'].append(ans_type_id)
-        print(type(tokenized_examples_))
-        print(tokenized_examples_)
+        print(tokenized_examples['has_answer_labels'])
+
         return tokenized_examples_
     
     def prepare_validation_features(self, examples):
