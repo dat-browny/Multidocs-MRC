@@ -916,6 +916,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             feature_index_with_best_score = collections.UserList([index, scores[index]] for index in feature_indices)
 
             feature_index = sorted(feature_index_with_best_score, key=lambda x: x[1], reverse=True)[0][0]
+
             prelim_predictions = []
             min_null_prediction = None
             # Looping through all the features associated to the current example.
@@ -934,6 +935,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                     "end_logit": end_logits[0],
                     "na_prob": na_prob,
                 }
+            
 
             head_feature = head_features[feature_index]
 
@@ -976,7 +978,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             "end_index": end_index
                         }
                     )        
-            print(prelim_predictions)
+
             if version_2_with_negative and min_null_prediction is not None:
                 # Add the minimum null prediction
                 prelim_predictions.append(min_null_prediction)
@@ -1002,9 +1004,10 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
             # failure.
-            if len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == ""):
+            if len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and is_training_reflection:
                 predictions.insert(0, {"text": "empty", "start_logit": 0.0,
                                    "end_logit": 0.0, "score": 0.0, "na_prob": 0.0})
+            else:
 
             # Compute the softmax of all scores (we do it with numpy to stay independent from torch/tf in this file, using
             # the LogSumExp trick).
@@ -1017,43 +1020,43 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             #     pred["probability"] = prob
 
             # Pick the best prediction. If the null answer is not possible, this is easy.
-            if not version_2_with_negative:
-                all_predictions[example["id"]] = predictions[0]["text"]
-            else:
-                # Otherwise we first need to find the best non-empty prediction.
-                for i in range(len(predictions)):
-                    if predictions[i]["text"] != "":
-                        break
-                print(predictions[i])
-                best_non_null_pred = predictions[i]
-                head_feature =  best_non_null_pred['head_features']
-                feature_index =  best_non_null_pred['feature_index']
-                if is_training_reflection:
-                    all_predictions[example["id"]] = {
-                        "head_features": head_feature,
-                        "feature_index": feature_index
-                    }
+                if not version_2_with_negative:
+                    all_predictions[example["id"]] = predictions[0]["text"]
                 else:
-                    start_index = best_non_null_pred['start_index']
-                    end_index = best_non_null_pred['end_index']
-                    input_ids = features[feature_index]['input_ids']
-                    ans_type_ids = torch.tensor([0]*len(input_ids), device=input_ids.device)
-                    if no_answer_probs[feature_index] < 0.5:
-                        ans_type_ids[0] = 2
-                    else:
-                        ans_type_ids[0] = 1
-                    ans_type_ids[start_index] = 3
-                    ans_type_ids[start_index+1:end_index+1] = 4
-                    na_probs_ = model(input_ids=input_ids, ans_type_ids=ans_type_ids, head_features=head_feature, return_dict=True)['ans_type_probs']
-                    # Then we compare to the null prediction using the threshold.
-
-                    if na_probs_ > 0.5:
-                        all_predictions[example["id"]] = {"text": "", "na_prob": 1.0}
-                    else:
+                    # Otherwise we first need to find the best non-empty prediction.
+                    for i in range(len(predictions)):
+                        if predictions[i]["text"] != "":
+                            break
+                    best_non_null_pred = predictions[i]
+                    head_feature =  best_non_null_pred['head_features']
+                    feature_index =  best_non_null_pred['feature_index']
+                    
+                    if is_training_reflection:
                         all_predictions[example["id"]] = {
-                            "text": best_non_null_pred["text"],
-                            "na_prob": na_probs_
+                            "head_features": head_feature,
+                            "feature_index": feature_index
                         }
+                    else:
+                        start_index = best_non_null_pred['start_index']
+                        end_index = best_non_null_pred['end_index']
+                        input_ids = features[feature_index]['input_ids']
+                        ans_type_ids = torch.tensor([0]*len(input_ids), device=input_ids.device)
+                        if no_answer_probs[feature_index] < 0.5:
+                            ans_type_ids[0] = 2
+                        else:
+                            ans_type_ids[0] = 1
+                        ans_type_ids[start_index] = 3
+                        ans_type_ids[start_index+1:end_index+1] = 4
+                        na_probs_ = model(input_ids=input_ids, ans_type_ids=ans_type_ids, head_features=head_feature, return_dict=True)['ans_type_probs']
+                        # Then we compare to the null prediction using the threshold.
+
+                        if na_probs_ > 0.5:
+                            all_predictions[example["id"]] = {"text": "", "na_prob": 1.0}
+                        else:
+                            all_predictions[example["id"]] = {
+                                "text": best_non_null_pred["text"],
+                                "na_prob": na_probs_
+                            }
 
             # Make `predictions` JSON-serializable by casting np.float back to float.
             all_nbest_json[example["id"]] = [
