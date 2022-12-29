@@ -910,11 +910,12 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         for example_index, example in enumerate(tqdm(examples)):
             # Those are the indices of the features associated to the current example.
             feature_indices = features_per_example[example_index]
+            print("=================================================")
+            print(feature_indices)
             feature_index_with_best_score = []
 
             feature_index_with_best_score.append([index, scores[index]] for index in feature_indices)
-            for i in feature_index_with_best_score:
-                print(i)
+
             feature_index = sorted(feature_index_with_best_score, key=lambda x: x[1], reverse=True)[0][0]
             prelim_predictions = []
             min_null_prediction = None
