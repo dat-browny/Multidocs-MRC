@@ -911,9 +911,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             # Those are the indices of the features associated to the current example.
             feature_indices = features_per_example[example_index]
 
-            feature_index_with_best_score = collections.UserList()
-
-            feature_index_with_best_score.append(collections.UserList([index, scores[index]]) for index in feature_indices)
+            feature_index_with_best_score = collections.UserList([index, scores[index]] for index in feature_indices)
             print('============================')
             print(feature_index_with_best_score)
             feature_index = sorted(feature_index_with_best_score, key=lambda x: x[1], reverse=True)[0][0]
