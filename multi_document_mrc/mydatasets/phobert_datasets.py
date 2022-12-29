@@ -1030,7 +1030,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                     best_non_null_pred = predictions[i]
                     head_feature =  best_non_null_pred['head_features']
                     feature_index =  best_non_null_pred['feature_index']
-                    
+
                     if is_training_reflection:
                         all_predictions[example["id"]] = {
                             "head_features": head_feature,
@@ -1240,6 +1240,9 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                             version_2_with_negative=True,
                             is_training_reflection=True)
 
+        print(instance_training)
+
+        
         head_features = instance_training['head_features']
         feature_index = instance_training['features_index']
         
