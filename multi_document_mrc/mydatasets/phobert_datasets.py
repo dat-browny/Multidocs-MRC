@@ -1133,7 +1133,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
     def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        self.device = 'cpu'
         self.model_name_or_path = model_name_or_path
         self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
 
@@ -1241,30 +1241,30 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
         head_features = [value['head_features'] for key, value in instance_training.items()]
         feature_index = [value['feature_index'] for key, value in instance_training.items()]
-        
+        tokenized_examples['has_answer_labels'] = tokenized_examples['has_answer_labels'].tolist()
         tokenized_examples_ = {}
         tokenized_examples_['input_ids'] = []
         tokenized_examples_['ans_type_ids'] = []
-        # tokenized_examples_['has_answer_labels'] = []
+        tokenized_examples_['has_answer_labels'] = []
         tokenized_examples_['attention_mask'] = []
         tokenized_examples_['head_features'] = []
         for id, feature_slice in enumerate(feature_index):
             tokenized_examples_['input_ids'].append(tokenized_examples['input_ids'][feature_slice])
-            # tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
+            tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
             tokenized_examples_['attention_mask'].append(tokenized_examples['attention_mask'][feature_slice])
             tokenized_examples_['head_features'].append(head_features[id])
             start_position = tokenized_examples['start_positions'][feature_slice]
             end_position = tokenized_examples['end_positions'][feature_slice]
             ans_type_id = torch.tensor([0]*self.max_seq_length)
-            # if tokenized_examples_['has_answer_labels'][-1] == 0:
-            #     ans_type_id[0] = 1
-            # else:
-            #     ans_type_id[0] = 2
+            if tokenized_examples_['has_answer_labels'][-1] == 0:
+                ans_type_id[0] = 1
+            else:
+                ans_type_id[0] = 2
             if start_position < end_position:
                 ans_type_id[start_position] = 3
                 ans_type_id[start_position+1:end_position+1] = 4
             tokenized_examples_['ans_type_ids'].append(ans_type_id)
-        print(tokenized_examples['has_answer_labels'])
+        tokenized_examples_['has_answer_labels'] = torch.tensor(tokenized_examples_['has_answer_labels'])
 
         return tokenized_examples_
     
