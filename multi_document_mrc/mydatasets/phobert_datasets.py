@@ -1240,9 +1240,8 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                             version_2_with_negative=True,
                             is_training_reflection=True)
 
-        print(len(instance_training))
         head_features = [value['head_features'] for key, value in instance_training.items()]
-        head_features = [value['feature_index'] for key, value in instance_training.items()]
+        feature_index = [value['feature_index'] for key, value in instance_training.items()]
         
         tokenized_examples_ = {}
         tokenized_examples_['input_ids'] = []
