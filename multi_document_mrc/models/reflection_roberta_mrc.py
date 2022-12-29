@@ -391,8 +391,9 @@ class ReflectionModel(RobertaModel):
         ans_type_probs = self.sigmoid(torch.matmul(hidden_x, self.A))
         
 
-        print(type(ans_type_probs))
-        print(type(has_answer_labels))
+        print(ans_type_probs.dtype)
+        print(has_answer_labels.dtype)
+
         if has_answer_labels is not None:
             loss = self.bce(ans_type_probs, has_answer_labels)
         else: 
