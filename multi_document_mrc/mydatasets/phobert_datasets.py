@@ -1133,7 +1133,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
     def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-        self.device = 'cpu'
+        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model_name_or_path = model_name_or_path
         self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
 
@@ -1265,7 +1265,6 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                 ans_type_id[start_position+1:end_position+1] = 4
             tokenized_examples_['ans_type_ids'].append(ans_type_id)
         tokenized_examples_['has_answer_labels'] = torch.tensor(tokenized_examples_['has_answer_labels'])
-
         return tokenized_examples_
     
     def prepare_validation_features(self, examples):
