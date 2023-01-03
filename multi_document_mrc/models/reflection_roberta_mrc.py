@@ -390,11 +390,6 @@ class ReflectionModel(RobertaModel):
         features = torch.cat((sequence_output[:,0], head_features), 1)
         hidden_x = self.gelu(self.linear(features)) 
 
-        print(hidden_x.shape)
-        print(self.A.shape)
-        print(ans_type_probs.shape)
-
-
         ans_type_probs = self.sigmoid(torch.matmul(hidden_x, self.A))
 
         if has_answer_labels is not None:
@@ -404,7 +399,8 @@ class ReflectionModel(RobertaModel):
         
         if not return_dict:
             output = (ans_type_probs) + encoder_outputs[2:]
-            return ((loss,) + output) if loss is not None else output
+            # return ((loss,) + output) if loss is not None else output
+            return [features, hidden_x] 
 
         return ReflectionModelOutput(
             loss=loss,
