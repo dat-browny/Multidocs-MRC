@@ -174,7 +174,7 @@ def main():
     def compute_metrics(p: EvalPrediction):
         print(p.predictions)
         print(p.label_ids)
-        if eval_dataset['has_answer_labels']==p.label_ids:
+        if eval_dataset['has_answer_labels']==p.label_ids.all():
             print('++++++++++++++++++++++++++++++++++++')
         return metric.compute(predictions=p.predictions, references=p.label_ids)
 
