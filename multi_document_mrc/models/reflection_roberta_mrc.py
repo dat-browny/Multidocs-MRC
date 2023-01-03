@@ -399,8 +399,7 @@ class ReflectionModel(RobertaModel):
         
         if not return_dict:
             output = (ans_type_probs) + encoder_outputs[2:]
-            # return ((loss,) + output) if loss is not None else output
-            return [features, hidden_x] 
+            return ((loss,) + output) if loss is not None else output
 
         return ReflectionModelOutput(
             loss=loss,
