@@ -154,6 +154,8 @@ def main():
     eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
         main_process_first=training_args.main_process_first
     )
+    print("===================================================================================================================================================================")
+
     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
         main_process_first=training_args.main_process_first
     )
