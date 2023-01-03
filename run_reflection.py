@@ -154,8 +154,6 @@ def main():
     eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
         main_process_first=training_args.main_process_first
     )
-    print("===================================================================================================================================================================")
-
     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
         main_process_first=training_args.main_process_first
     )
@@ -172,8 +170,9 @@ def main():
     metric = evaluate.load("f1")
 
     def compute_metrics(p: EvalPrediction):
-        print(p.predictions[1])
-
+        print(p.predictions[1].shape)
+        print(p.predictions[1][0])
+        print(p.predictions[1][0].shape)
         print(p.label_ids)
         return metric.compute(predictions=p.predictions, references=p.label_ids)
 
