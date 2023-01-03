@@ -179,25 +179,8 @@ class ReflectionTrainer(Trainer):
                 num_steps=math.ceil(output.num_samples / total_batch_size),
             )
         )
-        # if self.post_process_function is not None and self.compute_metrics is not None and self.args.should_save:
-        #     # Only the main node write the results by default
-        #     eval_preds = self.post_process_function(
-        #         examples=eval_examples,
-        #         features=eval_dataset,
-        #         predictions=output.predictions,
-        #         output_dir=self.args.output_dir,
-        #         log_level=self.args.get_process_log_level(),
-        #         stage="eval",
-        #     )
-        metrics = self.compute_metrics(output)
 
-            # Prefix all keys with metric_key_prefix + '_'
-        #     for key in list(metrics.keys()):
-        #         if not key.startswith(f"{metric_key_prefix}_"):
-        #             metrics[f"{metric_key_prefix}_{key}"] = metrics.pop(key)
-        #     metrics.update(output.metrics)
-        # else:
-        #     metrics = output.metrics
+        metrics = self.compute_metrics(output)
 
         if self.args.should_log:
             # Only the main node log the results by default

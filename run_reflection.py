@@ -25,7 +25,6 @@ import evaluate
 import transformers
 from multi_document_mrc.trainer import ReflectionTrainer
 from transformers import (
-    Trainer,
     DataCollatorWithPadding,
     EvalPrediction,
     HfArgumentParser,
@@ -154,7 +153,6 @@ def main():
     eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
         main_process_first=training_args.main_process_first
     )
-    print(eval_dataset['has_answer_labels'])
 
     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
         main_process_first=training_args.main_process_first
@@ -172,11 +170,6 @@ def main():
     metric = evaluate.load("f1")
 
     def compute_metrics(p: EvalPrediction):
-        print(p.predictions)
-        print(p.label_ids.all())
-        print(p.label_ids.any())
-        if (eval_dataset['has_answer_labels']==p.label_ids).all():
-            print('++++++++++++++++++++++++++++++++++++')
         return metric.compute(predictions=p.predictions, references=p.label_ids)
 
     # Initialize our Trainer

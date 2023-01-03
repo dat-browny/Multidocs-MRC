@@ -868,9 +868,10 @@ class ViMRCDatasetsV1bForPhoBERT(ViMRCDatasetsForPhoBERT):
 
 class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
-    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], data_args: Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, model_name_or_path: str = None, do_predict: bool = False, **kwargs):
+    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], data_args: Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, model_name_or_path: str = None, do_predict: bool = False, is_training_reflection: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
         self.model = ReflectionModel.from_pretrained(model_name_or_path, config=config)
+        self.is_training_reflection = is_training_reflection
     # def post_processing_function(self, examples, features, predictions, output_dir, log_level, stage="eval"):
     @staticmethod
     def postprocess_qa_predictions(
@@ -880,12 +881,9 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         version_2_with_negative: bool = False,
         n_best_size: int = 20,
         max_answer_length: int = 30,
-        null_score_diff_threshold: float = 0.0,
-        output_dir: Optional[str] = None,
-        prefix: Optional[str] = None,
         log_level: Optional[int] = logging.WARNING,
         model: PreTrainedModel = None,
-        is_training_reflection = None
+        is_training_reflection = True
     ):
 
         if len(predictions) != 5:
@@ -936,7 +934,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                     "na_prob": na_prob,
                 }
             
-
             head_feature = head_features[feature_index]
 
             offset_mapping = features[feature_index]["offset_mapping"]
@@ -1008,17 +1005,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 predictions.insert(0, {"text": "empty", "start_logit": 0.0,
                                    "end_logit": 0.0, "score": 0.0, "na_prob": 0.0})
             else:
-
-            # Compute the softmax of all scores (we do it with numpy to stay independent from torch/tf in this file, using
-            # the LogSumExp trick).
-            # scores_ = np.array([pred.pop("score").cpu() for pred in predictions])
-            # exp_scores = np.exp(scores_ - np.max(scores_))
-            # probs = exp_scores / exp_scores.sum()
-
-            # # Include the probabilities in our predictions.
-            # for prob, pred in zip(probs, predictions):
-            #     pred["probability"] = prob
-
             # Pick the best prediction. If the null answer is not possible, this is easy.
                 if not version_2_with_negative:
                     all_predictions[example["id"]] = predictions[0]["text"]
@@ -1064,33 +1050,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 for pred in predictions
             ]
 
-        # If we have an output_dir, let's save all those dicts.
-        if output_dir is not None:
-            if not os.path.isdir(output_dir):
-                raise EnvironmentError(f"{output_dir} is not a directory.")
-
-            prediction_file = os.path.join(
-                output_dir, "predictions.json" if prefix is None else f"{prefix}_predictions.json"
-            )
-            nbest_file = os.path.join(
-                output_dir, "nbest_predictions.json" if prefix is None else f"{prefix}_nbest_predictions.json"
-            )
-            if version_2_with_negative:
-                null_odds_file = os.path.join(
-                    output_dir, "null_odds.json" if prefix is None else f"{prefix}_null_odds.json"
-                )
-
-            # logger.info(f"Saving predictions to {prediction_file}.")
-            # with open(prediction_file, "w") as writer:
-            #     writer.write(json.dumps(all_predictions, indent=4) + "\n")
-            # logger.info(f"Saving nbest_preds to {nbest_file}.")
-            # with open(nbest_file, "w") as writer:
-            #     writer.write(json.dumps(all_nbest_json, indent=4) + "\n")
-            # if version_2_with_negative:
-            #     logger.info(f"Saving null_odds to {null_odds_file}.")
-            #     with open(null_odds_file, "w") as writer:
-            #         writer.write(json.dumps(scores_diff_json, indent=4) + "\n")
-
         return all_predictions
 
     def post_processing_function(
@@ -1115,6 +1074,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             log_level=log_level,
             prefix=stage,
             model=self.model,
+            is_training_reflection=self.is_training_reflection
         )
         # Format the result to the format the metric expects.
 
@@ -1349,7 +1309,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         for k, v in tokenized_examples.items():
             tokenized_examples[k] = torch.tensor(v, device=self.device)
         with torch.no_grad(): 
-        #Dungf postprocess cua model MRC de gen instance training cho model nay
+
             predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
                                 start_positions=tokenized_examples['start_positions'], 
                                 end_positions=tokenized_examples['end_positions'], 
@@ -1367,15 +1327,19 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                             predictions=predictions,
                             version_2_with_negative=True,
                             is_training_reflection=True)
+
         head_features = [value['head_features'] for key, value in instance_training.items()]
         feature_index = [value['feature_index'] for key, value in instance_training.items()]
+
         tokenized_examples['has_answer_labels'] = tokenized_examples['has_answer_labels'].tolist()
+
         tokenized_examples_ = {}
         tokenized_examples_['input_ids'] = []
         tokenized_examples_['ans_type_ids'] = []
         tokenized_examples_['has_answer_labels'] = []
         tokenized_examples_['attention_mask'] = []
         tokenized_examples_['head_features'] = []
+
         for id, feature_slice in enumerate(feature_index):
             tokenized_examples_['input_ids'].append(tokenized_examples['input_ids'][feature_slice])
             tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
