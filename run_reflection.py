@@ -170,7 +170,12 @@ def main():
     metric = evaluate.load("f1")
 
     def compute_metrics(p: EvalPrediction):
-        print(p.predictions)
+        print(p.predictions[0].shape)
+        print(p.predictions[1].shape)
+        print(p.predictions[2].shape)
+
+        print(p.predictions[3].shape)
+        print(p.predictions[4].shape)
 
         print(p.label_ids)
         return metric.compute(predictions=p.predictions, references=p.label_ids)
@@ -185,8 +190,7 @@ def main():
         tokenizer=tokenizer,
         data_collator=data_collator,
         post_process_function=dataset_obj.post_processing_function,
-        compute_metrics=compute_metrics,
-        return_dict=True
+        compute_metrics=compute_metrics
     )
 
     # Training
