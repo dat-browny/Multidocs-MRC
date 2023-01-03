@@ -170,7 +170,7 @@ def main():
     metric = evaluate.load("f1")
 
     def compute_metrics(p: EvalPrediction):
-        print(p.predictions[0])
+        print(p.predictions[1][0].shape)
         print(p.label_ids)
         return metric.compute(predictions=p.predictions, references=p.label_ids)
 
