@@ -220,7 +220,7 @@ class ReflectionTrainer(Trainer):
                 num_steps=math.ceil(output.num_samples / total_batch_size),
             )
         )
-
+        
         if self.post_process_function is None or self.compute_metrics is None:
             return output
 

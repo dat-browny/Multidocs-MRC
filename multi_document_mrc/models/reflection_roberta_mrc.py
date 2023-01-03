@@ -23,15 +23,13 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
-
+        self.roberta = RobertaModel(config, add_pooling_layer=False)
         #add S, E - learned parameter according to start/end
         self.S = nn.parameter.Parameter(torch.rand(config.hidden_size, requires_grad=True))
         self.E = nn.parameter.Parameter(torch.rand(config.hidden_size, requires_grad=True))
 
         #add softmax function
-        self.softmax = nn.Softmax()
-
-        self.roberta = RobertaModel(config, add_pooling_layer=False)
+        self.softmax = nn.Softmax(dim=1)
         # self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
         self.has_answer_predictor = nn.Linear(config.hidden_size, 2)
         # Initialize weights and apply final processing
