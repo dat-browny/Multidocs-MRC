@@ -389,6 +389,12 @@ class ReflectionModel(RobertaModel):
         has_answer_labels = has_answer_labels.float()
         features = torch.cat((sequence_output[:,0], head_features), 1)
         hidden_x = self.gelu(self.linear(features)) 
+
+        print(hidden_x.shape)
+        print(self.A.shape)
+        print(ans_type_probs.shape)
+
+
         ans_type_probs = self.sigmoid(torch.matmul(hidden_x, self.A))
 
         if has_answer_labels is not None:
