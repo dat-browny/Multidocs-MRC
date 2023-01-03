@@ -80,14 +80,14 @@ MODELS_MAP = {
         description="Phobert Question Answering model, Has a Answer Prediction Layer, modify content title concatenation"
     ),
     "phobert-qa-mrc-block":VersionClassesMap(
-        model_class=RobertaForMRCReflection,
+        model_class=(RobertaForMRCReflection, ReflectionModel),
         dataset_class=ViMRCDatasetsForPhoBERTNoHapReflection,
         config_class=RobertaConfig,
         tokenizer_class=PhobertTokenizerFast,
         description="Phobert Question Answering model, Has a Answer Prediction Layer, modify content title concatenation"
     ),
     "phobert-qa-reflection-block":VersionClassesMap(
-        model_class=ReflectionModel,
+        model_class=(ReflectionModel),
         dataset_class=ViMRCReflection,
         config_class=RobertaConfig,
         tokenizer_class=PhobertTokenizerFast,
