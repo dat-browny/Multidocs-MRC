@@ -1069,10 +1069,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             version_2_with_negative=self.data_args.version_2_with_negative,
             n_best_size=self.data_args.n_best_size,
             max_answer_length=self.data_args.max_answer_length,
-            null_score_diff_threshold=self.data_args.null_score_diff_threshold,
-            output_dir=output_dir,
             log_level=log_level,
-            prefix=stage,
             model=self.model,
             is_training_reflection=self.is_training_reflection
         )
