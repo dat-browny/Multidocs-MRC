@@ -154,6 +154,7 @@ def main():
     eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
         main_process_first=training_args.main_process_first
     )
+    print(len(eval_dataset))
     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
         main_process_first=training_args.main_process_first
     )
@@ -171,9 +172,9 @@ def main():
 
     def compute_metrics(p: EvalPrediction):
         print(p.predictions[0].shape)
-        print(p.predictions[0][0])
-        print(p.predictions[0][0].shape)
-        print(p.label_ids)
+        print(p.predictions[1].shape)
+        print(p.predictions[2].shape)
+
         return metric.compute(predictions=p.predictions, references=p.label_ids)
 
     # Initialize our Trainer
