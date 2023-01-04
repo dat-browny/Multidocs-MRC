@@ -1190,7 +1190,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                                 end_positions=tokenized_examples['end_positions'], 
                                 has_answer_labels=tokenized_examples['has_answer_labels'], 
                                 return_dict=True)
-
+        print("================================================================================")
         predictions = (predictions['start_logits'],predictions['end_logits'],predictions['has_answer_probs'],predictions['score'],predictions['head_features'])
 
         x = Dataset.from_dict(dict(examples))
