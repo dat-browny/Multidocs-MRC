@@ -939,9 +939,9 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
             offset_mapping = features[feature_index]["offset_mapping"]
             token_is_max_context = features[feature_index].get("token_is_max_context", None)
-            start_indexes = np.argsort(start_logits)[-n_best_size:: 1].tolist()
+            start_indexes = torch.argsort(start_logits)[-n_best_size:: 1].tolist()
             start_indexes.reverse()
-            end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
+            end_indexes = torch.argsort(end_logits)[-n_best_size:: 1].tolist()
             end_indexes.reverse()
             for start_index in start_indexes:
                 for end_index in end_indexes:
@@ -1176,6 +1176,9 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         
         for k, v in tokenized_examples.items():
             tokenized_examples[k] = torch.tensor(v, device=self.device)
+            print(len(tokenized_examples[k]))
+
+        
         batched_data = DataLoader(tokenized_examples, batch_size=16, shuffle=False)
         print(batched_data)
 
