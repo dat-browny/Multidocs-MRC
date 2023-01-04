@@ -1089,12 +1089,12 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
 class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
-    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
+    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model: PreTrainedModel, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        self.model_name_or_path = model_name_or_path
-        self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
-
+        # self.model_name_or_path = model_name_or_path
+        # self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
+        self.model = model.to(self.device)
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
@@ -1175,13 +1175,6 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                     tokenized_examples["end_positions"].append(token_end_index + 1)
                     tokenized_examples["has_answer_labels"].append(1)
         
-        infer = {}
-        for k, v in tokenized_examples.items():
-            infer[k] = torch.tensor(v, device=self.device)
-
-        
-        batched_data = DataLoader(infer, batch_size=16, shuffle=False)
-        print(len(batched_data))
 
         with torch.no_grad(): 
         #Dungf postprocess cua model MRC de gen instance training cho model nay
