@@ -1094,7 +1094,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         # self.model_name_or_path = model_name_or_path
         # self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
-        self.model = model.to(self.device)
+        self.MRCmodel = model.to(self.device)
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
