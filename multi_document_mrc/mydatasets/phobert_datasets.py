@@ -1185,10 +1185,11 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
         with torch.no_grad(): 
         #Dungf postprocess cua model MRC de gen instance training cho model nay
-            predictions = MRCModel(input_ids=tokenized_examples['input_ids'], 
-                                start_positions=tokenized_examples['start_positions'], 
-                                end_positions=tokenized_examples['end_positions'], 
-                                has_answer_labels=tokenized_examples['has_answer_labels'], 
+            for batch in batched_data:
+                predictions = MRCModel(input_ids=batch['input_ids'], 
+                                start_positions=batch['start_positions'], 
+                                end_positions=batch['end_positions'], 
+                                has_answer_labels=batch['has_answer_labels'], 
                                 return_dict=True)
         print("================================================================================")
         predictions = (predictions['start_logits'],predictions['end_logits'],predictions['has_answer_probs'],predictions['score'],predictions['head_features'])
