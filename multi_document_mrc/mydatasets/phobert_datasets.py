@@ -1094,7 +1094,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         # self.model_name_or_path = model_name_or_path
         # self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
-        self.MRCmodel = model.to(self.device)
+        self.MRCModel = model.to(self.device)
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
@@ -1177,13 +1177,12 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         
 
         with torch.no_grad(): 
-        #Dungf postprocess cua model MRC de gen instance training cho model nay
-            for batch in batched_data:
-                predictions = MRCModel(input_ids=batch['input_ids'], 
-                                start_positions=batch['start_positions'], 
-                                end_positions=batch['end_positions'], 
-                                has_answer_labels=batch['has_answer_labels'], 
-                                return_dict=True)
+        #Dungf postprocess cua model MRC de gen instance training cho model na
+            predictions = MRCModel(input_ids=tokenized_examples['input_ids'], 
+                            start_positions=tokenized_examples['start_positions'], 
+                            end_positions=tokenized_examples['end_positions'], 
+                            has_answer_labels=tokenized_examples['has_answer_labels'], 
+                            return_dict=True)
         print("================================================================================")
         predictions = (predictions['start_logits'],predictions['end_logits'],predictions['has_answer_probs'],predictions['score'],predictions['head_features'])
 
