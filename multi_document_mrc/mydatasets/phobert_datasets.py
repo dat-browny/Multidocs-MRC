@@ -1099,6 +1099,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
         # left whitespace
+        MRCModel = self.MRCModel
         examples[self.question_column_name] = [q.lstrip() for q in examples[self.question_column_name]]
         # Tokenize our examples with truncation and maybe padding, but keep the overflows using a stride. This results
         # in one example possible giving several features when a context is long, each of those features having a
@@ -1184,7 +1185,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
         with torch.no_grad(): 
         #Dungf postprocess cua model MRC de gen instance training cho model nay
-            predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
+            predictions = MRCModel(input_ids=tokenized_examples['input_ids'], 
                                 start_positions=tokenized_examples['start_positions'], 
                                 end_positions=tokenized_examples['end_positions'], 
                                 has_answer_labels=tokenized_examples['has_answer_labels'], 
