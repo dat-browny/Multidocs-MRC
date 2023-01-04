@@ -1175,13 +1175,13 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                     tokenized_examples["end_positions"].append(token_end_index + 1)
                     tokenized_examples["has_answer_labels"].append(1)
         
+        infer = {}
         for k, v in tokenized_examples.items():
-            tokenized_examples[k] = torch.tensor(v, device=self.device)
-            print(len(tokenized_examples[k]))
+            infer[k] = torch.tensor(v, device=self.device)
 
         
-        batched_data = DataLoader(tokenized_examples, batch_size=16, shuffle=False)
-        print(batched_data)
+        batched_data = DataLoader(infer, batch_size=16, shuffle=False)
+        print(len(batched_data))
 
         with torch.no_grad(): 
         #Dungf postprocess cua model MRC de gen instance training cho model nay
