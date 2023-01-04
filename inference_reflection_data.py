@@ -122,7 +122,8 @@ def main():
         do_train=training_args.do_train,
         do_eval=training_args.do_eval,
         do_predict=training_args.do_predict,
-        model=model
+        model=model,
+        model_name_or_path=model.args.model_name_or_path
     )
 
     train_dataset = dataset_obj.get_train_dataset(
