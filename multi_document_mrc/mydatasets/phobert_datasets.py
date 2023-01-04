@@ -18,6 +18,7 @@ import collections
 from tqdm import tqdm
 import os
 import json
+from torch.utils.data import DataLoader
 
 logger = logging.getLogger(__name__)
 config = RobertaConfig.from_pretrained("vinai/phobert-base")
@@ -1175,6 +1176,9 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         
         for k, v in tokenized_examples.items():
             tokenized_examples[k] = torch.tensor(v, device=self.device)
+        batched_data = DataLoader(tokenized_examples, batch_size=16, shuffle=False)
+        print(batched_data)
+
         with torch.no_grad(): 
         #Dungf postprocess cua model MRC de gen instance training cho model nay
             predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
