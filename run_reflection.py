@@ -33,8 +33,6 @@ from transformers import (
     default_data_collator,
     set_seed,
 )
-from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection, ReflectionModel
-
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils.versions import require_version
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
@@ -50,6 +48,7 @@ def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
+
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
@@ -120,7 +119,6 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    model_MRC = RobertaForMRCReflection.from_pretrained(model_args.model_name_or_path, config=config)
     model = model_architecture.model_class.from_pretrained(
         model_args.model_name_or_path,
         from_tf=bool(".ckpt" in model_args.model_name_or_path),
@@ -146,7 +144,7 @@ def main():
         do_train=training_args.do_train,
         do_eval=training_args.do_eval,
         do_predict=training_args.do_predict,
-        model=model_MRC
+        model_name_or_path=model_args.model_name_or_path
     )
 
     train_dataset = dataset_obj.get_train_dataset(

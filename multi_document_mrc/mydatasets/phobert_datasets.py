@@ -18,7 +18,6 @@ import collections
 from tqdm import tqdm
 import os
 import json
-from torch.utils.data import DataLoader
 
 logger = logging.getLogger(__name__)
 config = RobertaConfig.from_pretrained("vinai/phobert-base")
@@ -871,7 +870,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
     def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], data_args: Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, model_name_or_path: str = None, do_predict: bool = False, is_training_reflection: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-        # self.model = ReflectionModel.from_pretrained(model_name_or_path, config=config)
+        self.model = ReflectionModel.from_pretrained(model_name_or_path, config=config)
         self.is_training_reflection = is_training_reflection
     # def post_processing_function(self, examples, features, predictions, output_dir, log_level, stage="eval"):
     @staticmethod
@@ -939,9 +938,9 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
             offset_mapping = features[feature_index]["offset_mapping"]
             token_is_max_context = features[feature_index].get("token_is_max_context", None)
-            start_indexes = torch.argsort(start_logits)[-n_best_size:: 1].tolist()
+            start_indexes = np.argsort(start_logits)[-n_best_size:: 1].tolist()
             start_indexes.reverse()
-            end_indexes = torch.argsort(end_logits)[-n_best_size:: 1].tolist()
+            end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
             end_indexes.reverse()
             for start_index in start_indexes:
                 for end_index in end_indexes:
@@ -1091,15 +1090,14 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
     def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model: PreTrainedModel, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-        self.device = torch.device('cpu')
-        # self.model_name_or_path = model_name_or_path
-        # self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
-        self.MRCModel = model.to(self.device)
+        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        self.model_name_or_path = model
+        self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
+
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
         # left whitespace
-        MRCModel = self.MRCModel
         examples[self.question_column_name] = [q.lstrip() for q in examples[self.question_column_name]]
         # Tokenize our examples with truncation and maybe padding, but keep the overflows using a stride. This results
         # in one example possible giving several features when a context is long, each of those features having a
@@ -1177,15 +1175,14 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         
         for k, v in tokenized_examples.items():
             tokenized_examples[k] = torch.tensor(v, device=self.device)
-
         with torch.no_grad(): 
-        #Dungf postprocess cua model MRC de gen instance training cho model na
-            predictions = MRCModel(input_ids=tokenized_examples['input_ids'], 
-                            start_positions=tokenized_examples['start_positions'], 
-                            end_positions=tokenized_examples['end_positions'], 
-                            has_answer_labels=tokenized_examples['has_answer_labels'], 
-                            return_dict=True)
-        print("================================================================================")
+        #Dungf postprocess cua model MRC de gen instance training cho model nay
+            predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
+                                start_positions=tokenized_examples['start_positions'], 
+                                end_positions=tokenized_examples['end_positions'], 
+                                has_answer_labels=tokenized_examples['has_answer_labels'], 
+                                return_dict=True)
+
         predictions = (predictions['start_logits'],predictions['end_logits'],predictions['has_answer_probs'],predictions['score'],predictions['head_features'])
 
         x = Dataset.from_dict(dict(examples))
@@ -1193,7 +1190,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                         batched=True,
                         remove_columns=x.features)
 
-        instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer, model=MRCModel).postprocess_qa_predictions(examples=x, 
+        instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer, model_name_or_path=self.model_name_or_path).postprocess_qa_predictions(examples=x, 
                             features=features, 
                             predictions=predictions,
                             version_2_with_negative=True,
