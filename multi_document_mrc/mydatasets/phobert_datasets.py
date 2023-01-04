@@ -1092,7 +1092,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model_name_or_path = model
-        self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
+        self.MRCModel = model.to(self.device)
 
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
