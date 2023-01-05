@@ -133,13 +133,13 @@ def main():
         main_process_first=training_args.main_process_first
     )
     model.to(device)
-    batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=16, collate_fn=lambda x: tuple(x_.to(device) for x_ in default_collate(x)))
+    batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=16)
 
     for batch in batch_data:
-        model(input_ids=batch['input_ids'], 
-                                start_positions=batch['start_positions'], 
-                                end_positions=batch['end_positions'], 
-                                has_answer_labels=batch['has_answer_labels'], 
+        model(input_ids=batch['input_ids'].to(device), 
+                                start_positions=batch['start_positions'].to(device), 
+                                end_positions=batch['end_positions'].to(device), 
+                                has_answer_labels=batch['has_answer_labels'].to(device), 
                                 return_dict=True)
 
 
