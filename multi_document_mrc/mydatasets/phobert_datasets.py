@@ -897,13 +897,9 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         
         example_id_to_index = {k: i for i, k in enumerate(examples["id"])}
 
-        print(len(example_id_to_index))
-
         features_per_example = collections.defaultdict(list)
         for i, feature in enumerate(features):
             features_per_example[example_id_to_index[feature["example_id"]]].append(i)
-
-        print(len(features_per_example))
 
         all_predictions = collections.OrderedDict()
         all_nbest_json = collections.OrderedDict()
@@ -912,6 +908,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
         logger.setLevel(log_level)
         logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
+
         for example_index, example in enumerate(tqdm(examples)):
 
             n = len(all_predictions)
@@ -1058,6 +1055,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             ]
             if len(all_predictions)!= n+1:
                 print(example_index, example)
+                print(feature[feature_indices])
 
         return all_predictions
 
