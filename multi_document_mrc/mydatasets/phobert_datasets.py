@@ -980,6 +980,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         }
                     )        
 
+
             if version_2_with_negative and min_null_prediction is not None:
                 # Add the minimum null prediction
                 prelim_predictions.append(min_null_prediction)
@@ -987,7 +988,9 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
             # Only keep the best `n_best_size` predictions.
             predictions = sorted(prelim_predictions, key=lambda x: x["score"], reverse=True)[:n_best_size]
-
+            if example_index ==897: 
+                print(prelim_predictions)
+                print(predictions)
             # Add back the minimum null prediction if it was removed because of its low score.
             if (
                 version_2_with_negative
