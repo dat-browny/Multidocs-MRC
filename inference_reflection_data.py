@@ -8,6 +8,7 @@ from transformers import (
 from multi_document_mrc.mydatasets.phobert_datasets import (
     ViMRCReflection
 )
+from torch.utils.data.dataloader import default_collate
 from torch.utils.data import DataLoader
 from transformers.trainer_utils import get_last_checkpoint
 from multi_document_mrc.models.tokenization_phobert_fast import PhobertTokenizerFast
@@ -82,6 +83,7 @@ def main():
     # Distributed training:
     # The .from_pretrained methods guarantee that only one local process can concurrently
     # download model & vocab.
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     config = RobertaConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
@@ -106,7 +108,6 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    # print(model.parameters().device)
 
     # Tokenizer check: this script requires a fast tokenizer.
     if not isinstance(tokenizer, PreTrainedTokenizerFast):
@@ -131,16 +132,15 @@ def main():
     train_dataset = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
     )
-
-    batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=16)
+    model.to(device)
+    batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=16, collate_fn=lambda x: tuple(x_.to(device) for x_ in default_collate(x)))
 
     for batch in batch_data:
-        print(batch['input_ids'].device)
-        # model(input_ids=batch['input_ids'], 
-        #                         start_positions=batch['start_positions'], 
-        #                         end_positions=batch['end_positions'], 
-        #                         has_answer_labels=batch['has_answer_labels'], 
-        #                         return_dict=True)
+        model(input_ids=batch['input_ids'], 
+                                start_positions=batch['start_positions'], 
+                                end_positions=batch['end_positions'], 
+                                has_answer_labels=batch['has_answer_labels'], 
+                                return_dict=True)
 
 
 
