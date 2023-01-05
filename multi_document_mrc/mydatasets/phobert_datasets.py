@@ -1053,9 +1053,12 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 {k: (float(v) if isinstance(v, (np.float16, np.float32, np.float64)) else v) for k, v in pred.items()}
                 for pred in predictions
             ]
+
             if len(all_predictions)!= n+1:
                 print(example_index, example)
-                print(feature[feature_indices])
+                print(feature_indices)
+                for feature_id in feature_indices:
+                    print(feature[feature_id])
 
         return all_predictions
 
