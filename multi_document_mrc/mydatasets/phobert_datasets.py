@@ -927,7 +927,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             start_logits = all_start_logits[feature_index]
             end_logits = all_end_logits[feature_index]
             na_prob = float(no_answer_probs[feature_index])
-
+            print("===============================")
+            print(start_index, end_index, na_prob)
             feature_null_score = start_logits[0] + end_logits[0]
             if min_null_prediction is None or min_null_prediction["score"] > feature_null_score:
                 min_null_prediction = {
