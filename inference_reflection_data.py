@@ -131,7 +131,7 @@ def main():
         main_process_first=training_args.main_process_first
     )
 
-    batch_data = DataLoader(train_dataset, batch_size=16)
+    batch_data = DataLoader(train_dataset, batch_size=16).with_format("torch")
 
     print(batch for batch in batch_data)
     print(train_dataset)
