@@ -946,9 +946,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             start_indexes.reverse()
             end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
             end_indexes.reverse()
-            if example_index ==897: 
-                print("===============================")
-                print(start_indexes, end_indexes)
+            
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
@@ -991,9 +989,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
             # Only keep the best `n_best_size` predictions.
             predictions = sorted(prelim_predictions, key=lambda x: x["score"], reverse=True)[:n_best_size]
-            if example_index ==897: 
-                print(prelim_predictions)
-                print(predictions)
+
             # Add back the minimum null prediction if it was removed because of its low score.
             if (
                 version_2_with_negative
@@ -1068,12 +1064,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 {k: (float(v) if isinstance(v, (np.float16, np.float32, np.float64)) else v) for k, v in pred.items()}
                 for pred in predictions
             ]
-
-            if len(all_predictions)!= n+1:
-                print(example_index, example)
-                print(feature_indices)
-                for feature_id in feature_indices:
-                    print(feature[feature_id])
 
         return all_predictions
 
