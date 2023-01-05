@@ -1242,7 +1242,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                 ans_type_id[start_position+1:end_position+1] = 4
             tokenized_examples_['ans_type_ids'].append(ans_type_id)
         
-        return tokenized_examples
+        return tokenized_examples_
     
     def prepare_validation_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
