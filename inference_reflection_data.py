@@ -134,7 +134,7 @@ def main():
         main_process_first=training_args.main_process_first
     )
     model.to(device)
-    batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=64)
+    batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=32)
 
     for batch in tqdm(batch_data):
         output = model(input_ids=batch['input_ids'].to(device), 
