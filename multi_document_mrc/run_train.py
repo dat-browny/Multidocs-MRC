@@ -145,7 +145,7 @@ def main():
         do_eval=training_args.do_eval,
         do_predict=training_args.do_predict,
     )
-    train_dataset = dataset_obj.get_train_dataset(
+    train_dataset, train_examples = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
     )
     eval_dataset, eval_examples = dataset_obj.get_eval_dataset(

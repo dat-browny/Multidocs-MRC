@@ -153,18 +153,18 @@ def main():
         model_name_or_path=model_args.model_name_or_path
     )
 
-    train_dataset = dataset_obj.get_train_dataset(
+    train_dataset, train_examples = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
     )
-    # model.to(device)
-    # batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=32)
+    model.to(device)
+    batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=32)
 
-    # for batch in tqdm(batch_data):
-    #     output = model(input_ids=batch['input_ids'].to(device), 
-    #                             start_positions=batch['start_positions'].to(device), 
-    #                             end_positions=batch['end_positions'].to(device), 
-    #                             has_answer_labels=batch['has_answer_labels'].to(device), 
-    #                             return_dict=True)
+    for batch in tqdm(batch_data):
+        output = model(input_ids=batch['input_ids'].to(device), 
+                                start_positions=batch['start_positions'].to(device), 
+                                end_positions=batch['end_positions'].to(device), 
+                                has_answer_labels=batch['has_answer_labels'].to(device), 
+                                return_dict=True)
 
     # eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
     #     main_process_first=training_args.main_process_first

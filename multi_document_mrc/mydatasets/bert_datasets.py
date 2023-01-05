@@ -118,6 +118,7 @@ class MRCDatasetsForBERT(QuestionAnsweringDataset):
         if self.do_train:
             if "train" not in self.raw_datasets:
                 raise ValueError("--do_train requires a train dataset")
+            train_examples = self.raw_datasets["train"]
             train_dataset = self.raw_datasets["train"]
             if self.data_args.max_train_samples is not None:
                 # We will select sample from whole data if argument is specified
@@ -137,7 +138,7 @@ class MRCDatasetsForBERT(QuestionAnsweringDataset):
                 # Number of samples might increase during Feature Creation, We select only specified max samples
                 max_train_samples = min(len(train_dataset), self.data_args.max_train_samples)
                 train_dataset = train_dataset.select(range(max_train_samples))
-        return train_dataset
+        return train_dataset, train_examples
 
     def get_eval_dataset(self, main_process_first):
         eval_dataset, eval_examples = None, None
