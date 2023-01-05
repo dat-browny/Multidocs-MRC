@@ -106,6 +106,7 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
+    print(model.parameters().device)
 
     # Tokenizer check: this script requires a fast tokenizer.
     if not isinstance(tokenizer, PreTrainedTokenizerFast):
@@ -134,11 +135,12 @@ def main():
     batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=16)
 
     for batch in batch_data:
-        model(input_ids=batch['input_ids'], 
-                                start_positions=batch['start_positions'], 
-                                end_positions=batch['end_positions'], 
-                                has_answer_labels=batch['has_answer_labels'], 
-                                return_dict=True)
+        print(batch['input_ids'].device)
+        # model(input_ids=batch['input_ids'], 
+        #                         start_positions=batch['start_positions'], 
+        #                         end_positions=batch['end_positions'], 
+        #                         has_answer_labels=batch['has_answer_labels'], 
+        #                         return_dict=True)
 
 
 
