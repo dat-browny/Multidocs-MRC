@@ -26,6 +26,29 @@ from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
+def convert_to_instance(model, tokenized_data, device, batch_size):
+    infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
+    start_logits = []
+    end_logits = []
+    has_answer_probs = []
+    score = []
+    head_features = []
+
+    for batch in infer_data:
+        output = model(input_ids=batch['input_ids'].to(device), 
+                                start_positions=batch['start_positions'].to(device), 
+                                end_positions=batch['end_positions'].to(device), 
+                                has_answer_labels=batch['has_answer_labels'].to(device), 
+                                return_dict=True)
+        start_logits += output['start_logits'].tolist()
+        end_logits += output['end_logits'].tolist()
+        has_answer_probs += output['has_answer_probs'].tolist()
+        score += output['score'].tolist()
+        head_features += output['head_features'].tolist()
+
+    predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
+
+    
 
 def main():
     # See all possible arguments in src/transformers/training_args.py
@@ -133,18 +156,15 @@ def main():
     train_dataset = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
     )
-    model.to(device)
-    batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=32)
+    # model.to(device)
+    # batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=32)
 
-    for batch in tqdm(batch_data):
-        output = model(input_ids=batch['input_ids'].to(device), 
-                                start_positions=batch['start_positions'].to(device), 
-                                end_positions=batch['end_positions'].to(device), 
-                                has_answer_labels=batch['has_answer_labels'].to(device), 
-                                return_dict=True)
-
-    print(output)
-
+    # for batch in tqdm(batch_data):
+    #     output = model(input_ids=batch['input_ids'].to(device), 
+    #                             start_positions=batch['start_positions'].to(device), 
+    #                             end_positions=batch['end_positions'].to(device), 
+    #                             has_answer_labels=batch['has_answer_labels'].to(device), 
+    #                             return_dict=True)
 
     # eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
     #     main_process_first=training_args.main_process_first

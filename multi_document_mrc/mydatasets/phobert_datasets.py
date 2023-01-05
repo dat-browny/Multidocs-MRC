@@ -946,7 +946,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             start_indexes.reverse()
             end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
             end_indexes.reverse()
-            
+
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
@@ -1191,58 +1191,58 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                     tokenized_examples["end_positions"].append(token_end_index + 1)
                     tokenized_examples["has_answer_labels"].append(1)
         
-        # for k, v in tokenized_examples.items():
-        #     tokenized_examples[k] = torch.tensor(v, device=self.device)
-        # with torch.no_grad(): 
-        # #Dungf postprocess cua model MRC de gen instance training cho model nay
-        #     predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
-        #                         start_positions=tokenized_examples['start_positions'], 
-        #                         end_positions=tokenized_examples['end_positions'], 
-        #                         has_answer_labels=tokenized_examples['has_answer_labels'], 
-        #                         return_dict=True)
+        for k, v in tokenized_examples.items():
+            tokenized_examples[k] = torch.tensor(v, device=self.device)
+        with torch.no_grad(): 
+        #Dungf postprocess cua model MRC de gen instance training cho model nay
+            predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
+                                start_positions=tokenized_examples['start_positions'], 
+                                end_positions=tokenized_examples['end_positions'], 
+                                has_answer_labels=tokenized_examples['has_answer_labels'], 
+                                return_dict=True)
 
-        # predictions = (predictions['start_logits'],predictions['end_logits'],predictions['has_answer_probs'],predictions['score'],predictions['head_features'])
+        predictions = (predictions['start_logits'],predictions['end_logits'],predictions['has_answer_probs'],predictions['score'],predictions['head_features'])
 
-        # x = Dataset.from_dict(dict(examples))
-        # features = x.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features_reflection,
-        #                 batched=True,
-        #                 remove_columns=x.features)
+        x = Dataset.from_dict(dict(examples))
+        features = x.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features_reflection,
+                        batched=True,
+                        remove_columns=x.features)
 
-        # instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer, model_name_or_path=self.model_name_or_path).postprocess_qa_predictions(examples=x, 
-        #                     features=features, 
-        #                     predictions=predictions,
-        #                     version_2_with_negative=True,
-        #                     is_training_reflection=True)
+        instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer, model_name_or_path=self.model_name_or_path).postprocess_qa_predictions(examples=x, 
+                            features=features, 
+                            predictions=predictions,
+                            version_2_with_negative=True,
+                            is_training_reflection=True)
 
-        # start_positions = [value['start_positions'] for key, value in instance_training.items()]
-        # end_positions = [value['end_positions'] for key, value in instance_training.items()]
-        # head_features = [value['head_features'] for key, value in instance_training.items()]
-        # feature_index = [value['feature_index'] for key, value in instance_training.items()]
-        # tokenized_examples['has_answer_labels'] = tokenized_examples['has_answer_labels'].tolist()
-        # tokenized_examples_ = {}
-        # tokenized_examples_['input_ids'] = []
-        # tokenized_examples_['ans_type_ids'] = []
-        # tokenized_examples_['has_answer_labels'] = []
-        # tokenized_examples_['attention_mask'] = []
-        # tokenized_examples_['head_features'] = []
-        # for id, feature_slice in enumerate(feature_index):
-        #     tokenized_examples_['input_ids'].append(tokenized_examples['input_ids'][feature_slice])
-        #     tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
-        #     tokenized_examples_['attention_mask'].append(tokenized_examples['attention_mask'][feature_slice])
-        #     tokenized_examples_['head_features'].append(head_features[id])
-        #     start_position = start_positions[feature_slice]
-        #     end_position = end_positions['end_positions'][feature_slice]
-        #     ans_type_id = torch.tensor([0]*self.max_seq_length)
-        #     if tokenized_examples_['has_answer_labels'][-1] == 1 and start_position<end_position:
-        #         ans_type_id[0] = 2
-        #     else:
-        #         ans_type_id[0] = 1
-        #     if start_position < end_position:
-        #         ans_type_id[start_position] = 3
-        #         ans_type_id[start_position+1:end_position+1] = 4
-        #     tokenized_examples_['ans_type_ids'].append(ans_type_id)
+        start_positions = [value['start_positions'] for key, value in instance_training.items()]
+        end_positions = [value['end_positions'] for key, value in instance_training.items()]
+        head_features = [value['head_features'] for key, value in instance_training.items()]
+        feature_index = [value['feature_index'] for key, value in instance_training.items()]
+        tokenized_examples['has_answer_labels'] = tokenized_examples['has_answer_labels'].tolist()
+        tokenized_examples_ = {}
+        tokenized_examples_['input_ids'] = []
+        tokenized_examples_['ans_type_ids'] = []
+        tokenized_examples_['has_answer_labels'] = []
+        tokenized_examples_['attention_mask'] = []
+        tokenized_examples_['head_features'] = []
+        for id, feature_slice in enumerate(feature_index):
+            tokenized_examples_['input_ids'].append(tokenized_examples['input_ids'][feature_slice])
+            tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
+            tokenized_examples_['attention_mask'].append(tokenized_examples['attention_mask'][feature_slice])
+            tokenized_examples_['head_features'].append(head_features[id])
+            start_position = start_positions[id]
+            end_position = end_positions[id]
+            ans_type_id = torch.tensor([0]*self.max_seq_length)
+            if tokenized_examples_['has_answer_labels'][-1] == 1 and start_position<end_position:
+                ans_type_id[0] = 2
+            else:
+                ans_type_id[0] = 1
+            if start_position < end_position:
+                ans_type_id[start_position] = 3
+                ans_type_id[start_position+1:end_position+1] = 4
+            tokenized_examples_['ans_type_ids'].append(ans_type_id)
         
-        # return tokenized_examples
+        return tokenized_examples
     
     def prepare_validation_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
