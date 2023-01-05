@@ -1012,8 +1012,15 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
             # failure.
             if len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and is_training_reflection:
-                predictions.insert(0, {"text": "empty", "start_logit": 0.0,
-                                   "end_logit": 0.0, "score": 0.0, "na_prob": 0.0})
+                all_predictions[example["id"]] = {
+                            "start_positions": 0,
+                            "end_positions": 0,
+                            "head_features": head_feature,
+                            "feature_index": feature_index
+                        }
+            elif len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and not is_training_reflection:
+                all_predictions[example["id"]] = {"text": "empty", "start_logit": 0.0,
+                                   "end_logit": 0.0, "score": 0.0, "na_prob": 0.0}
             else:
             # Pick the best prediction. If the null answer is not possible, this is easy.
                 if not version_2_with_negative:
@@ -1029,6 +1036,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
                     if is_training_reflection:
                         all_predictions[example["id"]] = {
+                            "start_positions": best_non_null_pred['start_index'],
+                            "end_positions": best_non_null_pred['end_index'],
                             "head_features": head_feature,
                             "feature_index": feature_index
                         }
@@ -1215,6 +1224,8 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         #                     version_2_with_negative=True,
         #                     is_training_reflection=True)
 
+        # start_positions = [value['start_positions'] for key, value in instance_training.items()]
+        # end_positions = [value['end_positions'] for key, value in instance_training.items()]
         # head_features = [value['head_features'] for key, value in instance_training.items()]
         # feature_index = [value['feature_index'] for key, value in instance_training.items()]
         # tokenized_examples['has_answer_labels'] = tokenized_examples['has_answer_labels'].tolist()
@@ -1229,19 +1240,19 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         #     tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
         #     tokenized_examples_['attention_mask'].append(tokenized_examples['attention_mask'][feature_slice])
         #     tokenized_examples_['head_features'].append(head_features[id])
-        #     start_position = tokenized_examples['start_positions'][feature_slice]
-        #     end_position = tokenized_examples['end_positions'][feature_slice]
+        #     start_position = start_positions[feature_slice]
+        #     end_position = end_positions['end_positions'][feature_slice]
         #     ans_type_id = torch.tensor([0]*self.max_seq_length)
-        #     if tokenized_examples_['has_answer_labels'][-1] == 0:
-        #         ans_type_id[0] = 1
-        #     else:
+        #     if tokenized_examples_['has_answer_labels'][-1] == 1 and start_position<end_position:
         #         ans_type_id[0] = 2
+        #     else:
+        #         ans_type_id[0] = 1
         #     if start_position < end_position:
         #         ans_type_id[start_position] = 3
         #         ans_type_id[start_position+1:end_position+1] = 4
         #     tokenized_examples_['ans_type_ids'].append(ans_type_id)
         
-        return tokenized_examples
+        # return tokenized_examples
     
     def prepare_validation_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
