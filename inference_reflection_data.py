@@ -133,8 +133,12 @@ def main():
 
     batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=16)
 
-    for batch in batch_data[:1]:
-        print(batch)
+    for batch in batch_data:
+        model(input_ids=batch['input_ids'], 
+                                start_positions=batch['start_positions'], 
+                                end_positions=batch['end_positions'], 
+                                has_answer_labels=batch['has_answer_labels'], 
+                                return_dict=True)
 
 
 
