@@ -927,9 +927,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             start_logits = all_start_logits[feature_index]
             end_logits = all_end_logits[feature_index]
             na_prob = float(no_answer_probs[feature_index])
-            if example_index ==897: 
-                print("===============================")
-                print(start_logits, end_logits, na_prob)
+
             feature_null_score = start_logits[0] + end_logits[0]
             if min_null_prediction is None or min_null_prediction["score"] > feature_null_score:
                 min_null_prediction = {
@@ -948,6 +946,9 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             start_indexes.reverse()
             end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
             end_indexes.reverse()
+            if example_index ==897: 
+                print("===============================")
+                print(start_indexes, end_indexes)
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
