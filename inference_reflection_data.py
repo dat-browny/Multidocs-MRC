@@ -136,12 +136,13 @@ def main():
     batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=16)
 
     for batch in batch_data:
-        model(input_ids=batch['input_ids'].to(device), 
+        output = model(input_ids=batch['input_ids'].to(device), 
                                 start_positions=batch['start_positions'].to(device), 
                                 end_positions=batch['end_positions'].to(device), 
                                 has_answer_labels=batch['has_answer_labels'].to(device), 
                                 return_dict=True)
 
+    print(output)
 
 
     # eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
