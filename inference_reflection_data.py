@@ -133,7 +133,7 @@ def main():
 
     batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=16)
 
-    for batch in batch_data:
+    for batch in batch_data[:1]:
         print(batch)
 
 
