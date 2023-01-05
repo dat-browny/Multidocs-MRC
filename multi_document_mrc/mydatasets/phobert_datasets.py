@@ -894,11 +894,16 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
         if len(predictions[0]) != len(features):
             raise ValueError(f"Got {len(predictions[0])} predictions and {len(features)} features.")
-
+        
         example_id_to_index = {k: i for i, k in enumerate(examples["id"])}
+
+        print(len(example_id_to_index))
+
         features_per_example = collections.defaultdict(list)
         for i, feature in enumerate(features):
             features_per_example[example_id_to_index[feature["example_id"]]].append(i)
+
+        print(len(features_per_example))
 
         all_predictions = collections.OrderedDict()
         all_nbest_json = collections.OrderedDict()
@@ -908,6 +913,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         logger.setLevel(log_level)
         logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
         for example_index, example in enumerate(tqdm(examples)):
+
+            n = len(all_predictions)
             # Those are the indices of the features associated to the current example.
             feature_indices = features_per_example[example_index]
 
@@ -1049,6 +1056,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 {k: (float(v) if isinstance(v, (np.float16, np.float32, np.float64)) else v) for k, v in pred.items()}
                 for pred in predictions
             ]
+            if len(all_predictions)!= n+1:
+                print(example_index, example)
 
         return all_predictions
 
@@ -1061,8 +1070,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         log_level,
         stage="eval",
     ): 
-        print(len(examples))
-        print(len(features))
+
         # Post-processing: we match the start logits and end logits to answers in the original context.
         predictions = self.postprocess_qa_predictions(
             examples=examples,
@@ -1075,8 +1083,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             model=self.model,
             is_training_reflection=self.is_training_reflection
         )
-        print("===============================================")
-        print(len(predictions))
+
         # Format the result to the format the metric expects.
 
         if self.data_args.version_2_with_negative:
