@@ -22,6 +22,7 @@ import torch
 import logging
 import transformers
 import datasets
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +136,7 @@ def main():
     model.to(device)
     batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=16)
 
-    for batch in batch_data:
+    for batch in tqdm(batch_data):
         output = model(input_ids=batch['input_ids'].to(device), 
                                 start_positions=batch['start_positions'].to(device), 
                                 end_positions=batch['end_positions'].to(device), 
