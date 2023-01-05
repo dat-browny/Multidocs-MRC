@@ -8,6 +8,7 @@ from transformers import (
 from multi_document_mrc.mydatasets.phobert_datasets import (
     ViMRCReflection
 )
+from torch.utils.data import DataLoader
 from transformers.trainer_utils import get_last_checkpoint
 from multi_document_mrc.models.tokenization_phobert_fast import PhobertTokenizerFast
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
@@ -129,6 +130,10 @@ def main():
     train_dataset = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
     )
+
+    batch_data = DataLoader(train_dataset, batch_size=16)
+
+    print(batch for batch in batch_data)
     print(train_dataset)
     print(type(train_dataset))
 
