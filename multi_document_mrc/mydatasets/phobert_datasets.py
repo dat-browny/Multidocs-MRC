@@ -1061,6 +1061,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         log_level,
         stage="eval",
     ): 
+        print(len(examples))
+        print(len(features))
         # Post-processing: we match the start logits and end logits to answers in the original context.
         predictions = self.postprocess_qa_predictions(
             examples=examples,
@@ -1073,6 +1075,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             model=self.model,
             is_training_reflection=self.is_training_reflection
         )
+        print("===============================================")
+        print(len(predictions))
         # Format the result to the format the metric expects.
 
         if self.data_args.version_2_with_negative:
