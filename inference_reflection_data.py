@@ -129,13 +129,18 @@ def main():
     train_dataset = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
     )
-    eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
-        main_process_first=training_args.main_process_first
-    )
+    print(train_dataset)
+    print(type(train_dataset))
 
-    predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
-        main_process_first=training_args.main_process_first
-    )
+
+
+    # eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
+    #     main_process_first=training_args.main_process_first
+    # )
+
+    # predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
+    #     main_process_first=training_args.main_process_first
+    # )
 
 
 if __name__ == "__main__":
