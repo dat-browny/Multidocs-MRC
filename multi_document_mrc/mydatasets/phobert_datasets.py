@@ -940,17 +940,19 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 }
             
             head_feature = head_features[feature_index]
-            print("============================================")
-            print(type(all_start_logits))
-            print(is_training_reflection)
-            print("=========================================")
             offset_mapping = features[feature_index]["offset_mapping"]
             token_is_max_context = features[feature_index].get("token_is_max_context", None)
-            start_indexes = torch.argsort(start_logits)[-n_best_size:: 1].tolist()
-            start_indexes.reverse()
-            end_indexes = torch.argsort(end_logits)[-n_best_size:: 1].tolist()
-            end_indexes.reverse()
+            
+            if is_training_reflection:
+                start_indexes = torch.argsort(start_logits)[-n_best_size:: 1].tolist()
+                end_indexes = torch.argsort(end_logits)[-n_best_size:: 1].tolist()
+            else: 
+                start_indexes = np.argsort(start_logits)[-n_best_size:: 1].tolist()
+                end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
 
+            start_indexes.reverse()
+            end_indexes.reverse()
+                
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
