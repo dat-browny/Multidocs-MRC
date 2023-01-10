@@ -53,7 +53,8 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     has_answer_probs = []
     score = []
     head_features = []
-
+    print("=====================================================")
+    print(examples)
     with torch.no_grad():
         for batch in tqdm(infer_data):
             output = model(input_ids=batch['input_ids'].to(device), 
