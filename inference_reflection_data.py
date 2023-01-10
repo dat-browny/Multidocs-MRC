@@ -25,6 +25,24 @@ import transformers
 import datasets
 from tqdm import tqdm
 
+import evaluate
+
+from multi_document_mrc.trainer import ReflectionTrainer
+from transformers import (
+    DataCollatorWithPadding,
+    EvalPrediction,
+    HfArgumentParser,
+    PreTrainedTokenizerFast,
+    TrainingArguments,
+    default_data_collator,
+    set_seed,
+)
+from transformers.trainer_utils import get_last_checkpoint
+from transformers.utils.versions import require_version
+from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
+from multi_document_mrc.models_map import get_model_version_classes
+
+
 logger = logging.getLogger(__name__)
 
 def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path):
@@ -201,24 +219,104 @@ def main():
     train_dataset, train_examples = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
     )
+
+    eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
+        main_process_first=training_args.main_process_first
+    )
+
+    predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
+        main_process_first=training_args.main_process_first)
+
     model.to(device)
-    batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=32)
-    with torch.no_grad():
-        for batch in tqdm(batch_data):
-            output = model(input_ids=batch['input_ids'].to(device), 
-                                    start_positions=batch['start_positions'].to(device), 
-                                    end_positions=batch['end_positions'].to(device), 
-                                    has_answer_labels=batch['has_answer_labels'].to(device), 
-                                    return_dict=True)
+    # batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=32)
+    # with torch.no_grad():
+    #     for batch in tqdm(batch_data):
+    #         output = model(input_ids=batch['input_ids'].to(device), 
+    #                                 start_positions=batch['start_positions'].to(device), 
+    #                                 end_positions=batch['end_positions'].to(device), 
+    #                                 has_answer_labels=batch['has_answer_labels'].to(device), 
+    #                                 return_dict=True)
         
     train_dataset = convert_to_instance(model=model, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path)
-    # eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
-    #     main_process_first=training_args.main_process_first
-    # )
+    eval_dataset = convert_to_instance(model=model, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path)
+    data_collator = (
+        default_data_collator
+        if data_args.pad_to_max_length
+        else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
+    )
 
-    # predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
-    #     main_process_first=training_args.main_process_first
-    # )
+    metric = evaluate.load("f1")
+
+    def compute_metrics(p: EvalPrediction):
+        return metric.compute(predictions=p.predictions, references=p.label_ids)
+
+    # Initialize our Trainer
+    trainer = ReflectionTrainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset if training_args.do_train else None,
+        eval_dataset=eval_dataset if training_args.do_eval else None,
+        eval_examples=eval_examples if training_args.do_eval else None,
+        tokenizer=tokenizer,
+        data_collator=data_collator,
+        post_process_function=dataset_obj.post_processing_function,
+        compute_metrics=compute_metrics
+    )
+
+    # Training
+    if training_args.do_train:
+        checkpoint = None
+        if training_args.resume_from_checkpoint is not None:
+            checkpoint = training_args.resume_from_checkpoint
+        elif last_checkpoint is not None:
+            checkpoint = last_checkpoint
+        train_result = trainer.train(resume_from_checkpoint=checkpoint)
+        trainer.save_model()  # Saves the tokenizer too for easy upload
+
+        metrics = train_result.metrics
+        max_train_samples = (
+            data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
+        )
+        metrics["train_samples"] = min(max_train_samples, len(train_dataset))
+
+        trainer.log_metrics("train", metrics)
+        trainer.save_metrics("train", metrics)
+        trainer.save_state()
+
+    # Evaluation
+    if training_args.do_eval:
+        logger.info("*** Evaluate ***")
+        metrics = trainer.evaluate()
+
+        max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
+        metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
+
+        trainer.log_metrics("eval", metrics)
+        trainer.save_metrics("eval", metrics)
+
+    # Prediction
+    if training_args.do_predict:
+        logger.info("*** Predict ***")
+        results = trainer.predict(predict_dataset, predict_examples)
+        metrics = results.metrics
+
+        max_predict_samples = (
+            data_args.max_predict_samples if data_args.max_predict_samples is not None else len(predict_dataset)
+        )
+        metrics["predict_samples"] = min(max_predict_samples, len(predict_dataset))
+
+        trainer.log_metrics("predict", metrics)
+        trainer.save_metrics("predict", metrics)
+
+    kwargs = {"finetuned_from": model_args.model_name_or_path, "tasks": "question-answering"}
+    if data_args.dataset_name is not None:
+        kwargs["dataset_tags"] = data_args.dataset_name
+        if data_args.dataset_config_name is not None:
+            kwargs["dataset_args"] = data_args.dataset_config_name
+            kwargs["dataset"] = f"{data_args.dataset_name} {data_args.dataset_config_name}"
+        else:
+            kwargs["dataset"] = data_args.dataset_name
+
 
 if __name__ == "__main__":
     main()
