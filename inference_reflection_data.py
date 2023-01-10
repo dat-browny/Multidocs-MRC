@@ -46,15 +46,13 @@ from multi_document_mrc.models_map import get_model_version_classes
 logger = logging.getLogger(__name__)
 
 def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path):
-
     infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
     start_logits = []
     end_logits = []
     has_answer_probs = []
     score = []
     head_features = []
-    print("=====================================================")
-    print(examples)
+
     with torch.no_grad():
         for batch in tqdm(infer_data):
             output = model(input_ids=batch['input_ids'].to(device), 
@@ -216,13 +214,14 @@ def main():
         model=model,
         model_name_or_path=model_args.model_name_or_path
     )
-
+    print(11111111111111111111111111111111111111111111111111111)
     train_dataset, train_examples = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
     )
+    print(11111111111111111111111111111111111111111111111111111)
     print(train_dataset, train_examples)
     print("============================================")
-    
+
     eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
         main_process_first=training_args.main_process_first
     )
