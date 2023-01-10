@@ -107,7 +107,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             ans_type_id[start_position+1:end_position+1] = 4
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
 
-    return tokenized_examples_
+    return datasets.Dataset.from_dict(dict(tokenized_examples_))
 
     
 def main():
