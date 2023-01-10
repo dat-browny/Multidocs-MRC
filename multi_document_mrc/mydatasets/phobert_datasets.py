@@ -885,7 +885,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         model: PreTrainedModel = None,
         is_training_reflection = True
     ):
-
+        print(len(predictions))
+        
         if len(predictions) != 5:
             raise ValueError(
                 "`predictions` should be a tuple with five elements (start_logits, end_logits, has_answer_logits, score, head_features).")

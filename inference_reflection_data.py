@@ -73,6 +73,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
                     batched=True,
                     remove_columns=examples.features)
+
     instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(tokenizer, model_name_or_path=model_name_or_path).postprocess_qa_predictions(examples=examples, 
                     features=features, 
                     predictions=predictions,
@@ -83,7 +84,8 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     end_positions = [value['end_positions'] for key, value in instance_training.items()]
     head_features = [value['head_features'] for key, value in instance_training.items()]
     feature_index = [value['feature_index'] for key, value in instance_training.items()]
-
+    print(len(feature_index))
+    print(feature_index)
     tokenized_examples_ = {}
     tokenized_examples_['input_ids'] = []
     tokenized_examples_['ans_type_ids'] = []
@@ -91,7 +93,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     tokenized_examples_['attention_mask'] = []
     tokenized_examples_['head_features'] = []
     print(4)
-    
+
     for id, feature_slice in tqdm(enumerate(feature_index)):
         tokenized_examples_['input_ids'].append(tokenized_data['input_ids'][feature_slice])
         tokenized_examples_['has_answer_labels'].append(tokenized_data['has_answer_labels'][feature_slice])
