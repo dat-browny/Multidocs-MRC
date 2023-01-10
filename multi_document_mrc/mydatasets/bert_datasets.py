@@ -115,6 +115,7 @@ class MRCDatasetsForBERT(QuestionAnsweringDataset):
 
     def get_train_dataset(self, main_process_first):
         train_dataset = None
+        train_examples = None
         if self.do_train:
             if "train" not in self.raw_datasets:
                 raise ValueError("--do_train requires a train dataset")
