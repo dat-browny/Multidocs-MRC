@@ -158,7 +158,7 @@ def main():
     )
     model.to(device)
     batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=32)
-    with torch.no_grad:
+    with torch.no_grad():
         for batch in tqdm(batch_data):
             output = model(input_ids=batch['input_ids'].to(device), 
                                     start_positions=batch['start_positions'].to(device), 
