@@ -83,7 +83,6 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     head_features = [value['head_features'] for key, value in instance_training.items()]
     feature_index = [value['feature_index'] for key, value in instance_training.items()]
 
-    tokenized_data['has_answer_labels'] = tokenized_data['has_answer_labels']
     tokenized_examples_ = {}
     tokenized_examples_['input_ids'] = []
     tokenized_examples_['ans_type_ids'] = []
