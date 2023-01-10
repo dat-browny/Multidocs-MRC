@@ -45,7 +45,7 @@ from multi_document_mrc.models_map import get_model_version_classes
 
 logger = logging.getLogger(__name__)
 
-def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path):
+def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path, max_seq_length):
     infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
     start_logits = []
     end_logits = []
@@ -97,7 +97,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
         tokenized_examples_['head_features'].append(head_features[id])
         start_position = start_positions[id]
         end_position = end_positions[id]
-        ans_type_id = torch.tensor([0]*model.max_seq_length)
+        ans_type_id = torch.tensor([0]* max_seq_length)
         if tokenized_examples_['has_answer_labels'][-1] == 1 and start_position<end_position:
             ans_type_id[0] = 2
         else:
@@ -227,7 +227,7 @@ def main():
 
     model.to(device)
         
-    train_dataset = convert_to_instance(model=model, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path)
+    train_dataset = convert_to_instance(model=model, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=training_args.max_seq_length)
     eval_dataset = convert_to_instance(model=model, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path)
     data_collator = (
         default_data_collator
