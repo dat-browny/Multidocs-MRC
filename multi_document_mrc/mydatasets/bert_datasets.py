@@ -114,20 +114,18 @@ class MRCDatasetsForBERT(QuestionAnsweringDataset):
         return self.data_reader.load_datasets(data_files)
 
     def get_train_dataset(self, main_process_first):
-        train_dataset = None
-        train_examples = None
+        train_dataset, train_examples = None, None
         if self.do_train:
             if "train" not in self.raw_datasets:
                 raise ValueError("--do_train requires a train dataset")
-            train_dataset = self.raw_datasets["train"]
+            train_examples = self.raw_datasets["train"]
             if self.data_args.max_train_samples is not None:
                 # We will select sample from whole data if argument is specified
                 max_train_samples = min(len(train_dataset), self.data_args.max_train_samples)
-                train_dataset = train_dataset.select(range(max_train_samples))
-                train_examples = train_dataset.copy()
+                train_examples = train_dataset.select(range(max_train_samples))
             # Create train feature from dataset
             with main_process_first(desc="train dataset map pre-processing"):
-                train_dataset = train_dataset.map(
+                train_dataset = train_examples.map(
                     self.prepare_train_features,
                     batched=True,
                     num_proc=self.data_args.preprocessing_num_workers,
