@@ -67,11 +67,11 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             head_features += output['head_features'].tolist()
 
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
-    x = datasets.Dataset.from_dict(dict(examples))
+    # x = datasets.Dataset.from_dict(dict(examples))
     
-    features = x.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
+    features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
                     batched=True,
-                    remove_columns=x.features)
+                    remove_columns=examples.features)
     instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(tokenizer, model_name_or_path=model_name_or_path).postprocess_qa_predictions(examples=x, 
                     features=features, 
                     predictions=predictions,
@@ -214,13 +214,10 @@ def main():
         model=model,
         model_name_or_path=model_args.model_name_or_path
     )
-    print(11111111111111111111111111111111111111111111111111111)
+
     train_dataset, train_examples = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
     )
-    print(11111111111111111111111111111111111111111111111111111)
-    print(train_dataset, train_examples)
-    print("============================================")
 
     eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
         main_process_first=training_args.main_process_first
@@ -230,14 +227,6 @@ def main():
         main_process_first=training_args.main_process_first)
 
     model.to(device)
-    # batch_data = DataLoader(train_dataset.with_format("torch"), batch_size=32)
-    # with torch.no_grad():
-    #     for batch in tqdm(batch_data):
-    #         output = model(input_ids=batch['input_ids'].to(device), 
-    #                                 start_positions=batch['start_positions'].to(device), 
-    #                                 end_positions=batch['end_positions'].to(device), 
-    #                                 has_answer_labels=batch['has_answer_labels'].to(device), 
-    #                                 return_dict=True)
         
     train_dataset = convert_to_instance(model=model, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path)
     eval_dataset = convert_to_instance(model=model, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path)
