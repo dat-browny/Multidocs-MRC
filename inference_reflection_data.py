@@ -97,7 +97,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
         tokenized_examples_['head_features'].append(head_features[id])
         start_position = start_positions[id]
         end_position = end_positions[id]
-        ans_type_id = torch.tensor([0]*tokenizer.max_seq_length)
+        ans_type_id = torch.tensor([0]*model.max_seq_length)
         if tokenized_examples_['has_answer_labels'][-1] == 1 and start_position<end_position:
             ans_type_id[0] = 2
         else:
