@@ -924,7 +924,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             # Looping through all the features associated to the current example.
             # for feature_index in feature_indices:
                 # We grab the predictions of the model for this feature.
-            print(is_training_reflection)
+
             start_logits = all_start_logits[feature_index]
             end_logits = all_end_logits[feature_index]
             na_prob = float(no_answer_probs[feature_index])
@@ -942,7 +942,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             head_feature = head_features[feature_index]
             offset_mapping = features[feature_index]["offset_mapping"]
             token_is_max_context = features[feature_index].get("token_is_max_context", None)
-            
+
             if is_training_reflection:
                 start_indexes = torch.argsort(start_logits)[-n_best_size:: 1].tolist()
                 end_indexes = torch.argsort(end_logits)[-n_best_size:: 1].tolist()
