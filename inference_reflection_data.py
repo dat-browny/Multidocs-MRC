@@ -16,6 +16,7 @@ from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
 from dataclasses import dataclass
 from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection
+from multi_document_mrc.mydatasets.phobert_datasets import ViMRCDatasetsForPhoBERT, ViMRCDatasetsForPhoBERTNoHapReflection
 import os
 import sys
 import torch
@@ -26,7 +27,8 @@ from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
-def convert_to_instance(model, tokenized_data, device, batch_size):
+def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path):
+
     infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
     start_logits = []
     end_logits = []
@@ -34,22 +36,64 @@ def convert_to_instance(model, tokenized_data, device, batch_size):
     score = []
     head_features = []
 
-    for batch in infer_data:
-        output = model(input_ids=batch['input_ids'].to(device), 
-                                start_positions=batch['start_positions'].to(device), 
-                                end_positions=batch['end_positions'].to(device), 
-                                has_answer_labels=batch['has_answer_labels'].to(device), 
-                                return_dict=True)
-        start_logits += output['start_logits'].tolist()
-        end_logits += output['end_logits'].tolist()
-        has_answer_probs += output['has_answer_probs'].tolist()
-        score += output['score'].tolist()
-        head_features += output['head_features'].tolist()
+    with torch.no_grad():
+        for batch in tqdm(infer_data):
+            output = model(input_ids=batch['input_ids'].to(device), 
+                                    start_positions=batch['start_positions'].to(device), 
+                                    end_positions=batch['end_positions'].to(device), 
+                                    has_answer_labels=batch['has_answer_labels'].to(device), 
+                                    return_dict=True)
+            start_logits += output['start_logits'].tolist()
+            end_logits += output['end_logits'].tolist()
+            has_answer_probs += output['has_answer_probs'].tolist()
+            score += output['score'].tolist()
+            head_features += output['head_features'].tolist()
 
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
+    x = datasets.Dataset.from_dict(dict(examples))
+    
+    features = x.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
+                    batched=True,
+                    remove_columns=x.features)
+    instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(tokenizer, model_name_or_path=model_name_or_path).postprocess_qa_predictions(examples=x, 
+                    features=features, 
+                    predictions=predictions,
+                    version_2_with_negative=True,
+                    is_training_reflection=True)
+
+    start_positions = [value['start_positions'] for key, value in instance_training.items()]
+    end_positions = [value['end_positions'] for key, value in instance_training.items()]
+    head_features = [value['head_features'] for key, value in instance_training.items()]
+    feature_index = [value['feature_index'] for key, value in instance_training.items()]
+
+    tokenized_data['has_answer_labels'] = tokenized_data['has_answer_labels'].tolist()
+    tokenized_examples_ = {}
+    tokenized_examples_['input_ids'] = []
+    tokenized_examples_['ans_type_ids'] = []
+    tokenized_examples_['has_answer_labels'] = []
+    tokenized_examples_['attention_mask'] = []
+    tokenized_examples_['head_features'] = []
+
+    for id, feature_slice in enumerate(feature_index):
+        tokenized_examples_['input_ids'].append(tokenized_data['input_ids'][feature_slice])
+        tokenized_examples_['has_answer_labels'].append(tokenized_data['has_answer_labels'][feature_slice])
+        tokenized_examples_['attention_mask'].append(tokenized_data['attention_mask'][feature_slice])
+        tokenized_examples_['head_features'].append(head_features[id])
+        start_position = start_positions[id]
+        end_position = end_positions[id]
+        ans_type_id = torch.tensor([0]*tokenizer.max_seq_length)
+        if tokenized_examples_['has_answer_labels'][-1] == 1 and start_position<end_position:
+            ans_type_id[0] = 2
+        else:
+            ans_type_id[0] = 1
+        if start_position < end_position:
+            ans_type_id[start_position] = 3
+            ans_type_id[start_position+1:end_position+1] = 4
+        tokenized_examples_['ans_type_ids'].append(ans_type_id)
+
+    return tokenized_examples_
 
     
-
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
@@ -108,6 +152,7 @@ def main():
     # The .from_pretrained methods guarantee that only one local process can concurrently
     # download model & vocab.
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
     config = RobertaConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
@@ -166,7 +211,7 @@ def main():
                                     has_answer_labels=batch['has_answer_labels'].to(device), 
                                     return_dict=True)
         
-
+    train_dataset = convert_to_instance(model=model, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path)
     # eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
     #     main_process_first=training_args.main_process_first
     # )
