@@ -127,9 +127,7 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    print(model.config.use_return_dict)
-    print(model.config.use_return_dict)
-    print(model.config.use_return_dict)
+    
     # Tokenizer check: this script requires a fast tokenizer.
     if not isinstance(tokenizer, PreTrainedTokenizerFast):
         raise ValueError(
