@@ -147,7 +147,7 @@ def main():
         model_name_or_path=model_args.model_name_or_path
     )
 
-    train_dataset = dataset_obj.get_train_dataset(
+    train_dataset, train_examples = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
     )
     eval_dataset, eval_examples = dataset_obj.get_eval_dataset(

@@ -885,8 +885,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         model: PreTrainedModel = None,
         is_training_reflection = True
     ):
-        print(len(predictions))
-        
+
         if len(predictions) != 5:
             raise ValueError(
                 "`predictions` should be a tuple with five elements (start_logits, end_logits, has_answer_logits, score, head_features).")
@@ -895,9 +894,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
         if len(predictions[0]) != len(features):
             raise ValueError(f"Got {len(predictions[0])} predictions and {len(features)} features.")
-        
-        example_id_to_index = {k: i for i, k in enumerate(examples["id"])}
 
+        example_id_to_index = {k: i for i, k in enumerate(examples["id"])}
         features_per_example = collections.defaultdict(list)
         for i, feature in enumerate(features):
             features_per_example[example_id_to_index[feature["example_id"]]].append(i)
@@ -909,10 +907,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
         logger.setLevel(log_level)
         logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
-
         for example_index, example in enumerate(tqdm(examples)):
-
-            n = len(all_predictions)
             # Those are the indices of the features associated to the current example.
             feature_indices = features_per_example[example_index]
 
@@ -925,7 +920,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             # Looping through all the features associated to the current example.
             # for feature_index in feature_indices:
                 # We grab the predictions of the model for this feature.
-
             start_logits = all_start_logits[feature_index]
             end_logits = all_end_logits[feature_index]
             na_prob = float(no_answer_probs[feature_index])
@@ -941,19 +935,13 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 }
             
             head_feature = head_features[feature_index]
+
             offset_mapping = features[feature_index]["offset_mapping"]
             token_is_max_context = features[feature_index].get("token_is_max_context", None)
-
-            if is_training_reflection:
-                start_indexes = torch.argsort(start_logits)[-n_best_size:: 1].tolist()
-                end_indexes = torch.argsort(end_logits)[-n_best_size:: 1].tolist()
-            else: 
-                start_indexes = np.argsort(start_logits)[-n_best_size:: 1].tolist()
-                end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
-
+            start_indexes = np.argsort(start_logits)[-n_best_size:: 1].tolist()
             start_indexes.reverse()
+            end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
             end_indexes.reverse()
-                
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
@@ -988,7 +976,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         }
                     )        
 
-
             if version_2_with_negative and min_null_prediction is not None:
                 # Add the minimum null prediction
                 prelim_predictions.append(min_null_prediction)
@@ -1015,15 +1002,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
             # failure.
             if len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and is_training_reflection:
-                all_predictions[example["id"]] = {
-                            "start_positions": 0,
-                            "end_positions": 0,
-                            "head_features": head_feature,
-                            "feature_index": feature_index
-                        }
-            elif len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and not is_training_reflection:
-                all_predictions[example["id"]] = {"text": "empty", "start_logit": 0.0,
-                                   "end_logit": 0.0, "score": 0.0, "na_prob": 0.0}
+                predictions.insert(0, {"text": "empty", "start_logit": 0.0,
+                                   "end_logit": 0.0, "score": 0.0, "na_prob": 0.0})
             else:
             # Pick the best prediction. If the null answer is not possible, this is easy.
                 if not version_2_with_negative:
@@ -1039,8 +1019,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
                     if is_training_reflection:
                         all_predictions[example["id"]] = {
-                            "start_positions": best_non_null_pred['start_index'],
-                            "end_positions": best_non_null_pred['end_index'],
                             "head_features": head_feature,
                             "feature_index": feature_index
                         }
@@ -1083,7 +1061,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         log_level,
         stage="eval",
     ): 
-
         # Post-processing: we match the start logits and end logits to answers in the original context.
         predictions = self.postprocess_qa_predictions(
             examples=examples,
@@ -1096,7 +1073,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             model=self.model,
             is_training_reflection=self.is_training_reflection
         )
-
         # Format the result to the format the metric expects.
 
         if self.data_args.version_2_with_negative:
@@ -1108,7 +1084,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
         references = [{"id": ex["id"], "answers": ex[self.answer_column_name]} for ex in examples]
         return EvalPrediction(predictions=formatted_predictions, label_ids=references)
-
 class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
     def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model: PreTrainedModel, model_name_or_path: str = None, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
