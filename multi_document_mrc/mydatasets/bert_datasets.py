@@ -152,7 +152,7 @@ class MRCDatasetsForBERT(QuestionAnsweringDataset):
             # Validation Feature Creation
             with main_process_first(desc="validation dataset map pre-processing"):
                 eval_dataset = eval_examples.map(
-                    self.prepare_train_features,
+                    self.prepare_validation_features,
                     batched=True,
                     num_proc=self.data_args.preprocessing_num_workers,
                     remove_columns=self.column_names,
