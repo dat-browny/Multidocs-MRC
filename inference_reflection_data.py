@@ -46,9 +46,11 @@ from multi_document_mrc.models_map import get_model_version_classes
 logger = logging.getLogger(__name__)
 
 def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path, max_seq_length):
-    tokenized_data = tokenized_data.to_dict()
-    for k, v in tokenized_data.items():
-        tokenized_data[k] = torch.tensor(v, device=device)
+
+    tokenized_data_dict = tokenized_data.to_dict()
+    for k, v in tokenized_data_dict.items():
+        tokenized_data_dict[k] = torch.tensor(v, device=device)
+        
     infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
     start_logits = []
     end_logits = []
@@ -97,9 +99,9 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
 
     for id, feature_slice in tqdm(enumerate(feature_index)):
         print(1)
-        tokenized_examples_['input_ids'].append(tokenized_data['input_ids'][feature_slice])
-        tokenized_examples_['has_answer_labels'].append(tokenized_data['has_answer_labels'][feature_slice])
-        tokenized_examples_['attention_mask'].append(tokenized_data['attention_mask'][feature_slice])
+        tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice])
+        tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice])
+        tokenized_examples_['attention_mask'].append(tokenized_data_dict['attention_mask'][feature_slice])
         tokenized_examples_['head_features'].append(head_features[id])
         print(2)
         start_position = start_positions[id]
