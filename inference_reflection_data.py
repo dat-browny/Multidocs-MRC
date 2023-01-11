@@ -46,7 +46,7 @@ from multi_document_mrc.models_map import get_model_version_classes
 logger = logging.getLogger(__name__)
 
 def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path, max_seq_length):
-    for k, v in tokenized_data.items():
+    for k, v in tokenized_data.to_dict().items():
         tokenized_data[k] = torch.tensor(v, device=device)
     infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
     start_logits = []
