@@ -54,7 +54,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     head_features = []
 
     with torch.no_grad():
-        print(1)
+
         for batch in tqdm(infer_data):
             output = model(input_ids=batch['input_ids'].to(device), 
                                     start_positions=batch['start_positions'].to(device), 
@@ -66,7 +66,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             has_answer_probs += output['has_answer_probs'].tolist()
             score += output['score'].tolist()
             head_features += output['head_features'].tolist()
-    print(2)
+
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
     # x = datasets.Dataset.from_dict(dict(examples))
     
@@ -79,7 +79,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
                     predictions=predictions,
                     version_2_with_negative=True,
                     is_training_reflection=True)
-    print(3)
+
     start_positions = [value['start_positions'] for key, value in instance_training.items()]
     end_positions = [value['end_positions'] for key, value in instance_training.items()]
     head_features = [value['head_features'] for key, value in instance_training.items()]
@@ -92,7 +92,6 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     tokenized_examples_['has_answer_labels'] = []
     tokenized_examples_['attention_mask'] = []
     tokenized_examples_['head_features'] = []
-    print(4)
 
     for id, feature_slice in tqdm(enumerate(feature_index)):
         tokenized_examples_['input_ids'].append(tokenized_data['input_ids'][feature_slice])
