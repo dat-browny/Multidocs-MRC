@@ -50,6 +50,7 @@ class QuestionAnsweringTrainer(Trainer):
             )
         finally:
             self.compute_metrics = compute_metrics
+        print(1)
         total_batch_size = self.args.eval_batch_size * self.args.world_size
         if f"{metric_key_prefix}_jit_compilation_time" in output.metrics:
             start_time += output.metrics[f"{metric_key_prefix}_jit_compilation_time"]
@@ -61,6 +62,7 @@ class QuestionAnsweringTrainer(Trainer):
                 num_steps=math.ceil(output.num_samples / total_batch_size),
             )
         )
+        print(2)
         if self.post_process_function is not None and self.compute_metrics is not None and self.args.should_save:
             # Only the main node write the results by default
             eval_preds = self.post_process_function(
@@ -72,7 +74,7 @@ class QuestionAnsweringTrainer(Trainer):
                 stage="eval",
             )
             metrics = self.compute_metrics(eval_preds)
-
+            print(3)
             # Prefix all keys with metric_key_prefix + '_'
             for key in list(metrics.keys()):
                 if not key.startswith(f"{metric_key_prefix}_"):
@@ -80,7 +82,7 @@ class QuestionAnsweringTrainer(Trainer):
             metrics.update(output.metrics)
         else:
             metrics = output.metrics
-
+        print(4)
         if self.args.should_log:
             # Only the main node log the results by default
             self.log(metrics)
