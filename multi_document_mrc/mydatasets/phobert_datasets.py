@@ -885,7 +885,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         model: PreTrainedModel = None,
         is_training_reflection = True
     ):
-
+        print(len(predictions))
+        
         if len(predictions) != 5:
             raise ValueError(
                 "`predictions` should be a tuple with five elements (start_logits, end_logits, has_answer_logits, score, head_features).")
@@ -894,8 +895,9 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
         if len(predictions[0]) != len(features):
             raise ValueError(f"Got {len(predictions[0])} predictions and {len(features)} features.")
-
+        
         example_id_to_index = {k: i for i, k in enumerate(examples["id"])}
+
         features_per_example = collections.defaultdict(list)
         for i, feature in enumerate(features):
             features_per_example[example_id_to_index[feature["example_id"]]].append(i)
@@ -907,7 +909,10 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
         logger.setLevel(log_level)
         logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
+
         for example_index, example in enumerate(tqdm(examples)):
+
+            n = len(all_predictions)
             # Those are the indices of the features associated to the current example.
             feature_indices = features_per_example[example_index]
 
@@ -920,6 +925,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             # Looping through all the features associated to the current example.
             # for feature_index in feature_indices:
                 # We grab the predictions of the model for this feature.
+
             start_logits = all_start_logits[feature_index]
             end_logits = all_end_logits[feature_index]
             na_prob = float(no_answer_probs[feature_index])
@@ -935,13 +941,19 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                 }
             
             head_feature = head_features[feature_index]
-
             offset_mapping = features[feature_index]["offset_mapping"]
             token_is_max_context = features[feature_index].get("token_is_max_context", None)
-            start_indexes = np.argsort(start_logits)[-n_best_size:: 1].tolist()
+
+            if is_training_reflection:
+                start_indexes = torch.argsort(start_logits)[-n_best_size:: 1].tolist()
+                end_indexes = torch.argsort(end_logits)[-n_best_size:: 1].tolist()
+            else: 
+                start_indexes = np.argsort(start_logits)[-n_best_size:: 1].tolist()
+                end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
+
             start_indexes.reverse()
-            end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
             end_indexes.reverse()
+                
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
@@ -976,6 +988,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         }
                     )        
 
+
             if version_2_with_negative and min_null_prediction is not None:
                 # Add the minimum null prediction
                 prelim_predictions.append(min_null_prediction)
@@ -1002,8 +1015,15 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
             # failure.
             if len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and is_training_reflection:
-                predictions.insert(0, {"text": "empty", "start_logit": 0.0,
-                                   "end_logit": 0.0, "score": 0.0, "na_prob": 0.0})
+                all_predictions[example["id"]] = {
+                            "start_positions": 0,
+                            "end_positions": 0,
+                            "head_features": head_feature,
+                            "feature_index": feature_index
+                        }
+            elif len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and not is_training_reflection:
+                all_predictions[example["id"]] = {"text": "empty", "start_logit": 0.0,
+                                   "end_logit": 0.0, "score": 0.0, "na_prob": 0.0}
             else:
             # Pick the best prediction. If the null answer is not possible, this is easy.
                 if not version_2_with_negative:
@@ -1019,6 +1039,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
                     if is_training_reflection:
                         all_predictions[example["id"]] = {
+                            "start_positions": best_non_null_pred['start_index'],
+                            "end_positions": best_non_null_pred['end_index'],
                             "head_features": head_feature,
                             "feature_index": feature_index
                         }
@@ -1061,6 +1083,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         log_level,
         stage="eval",
     ): 
+
         # Post-processing: we match the start logits and end logits to answers in the original context.
         predictions = self.postprocess_qa_predictions(
             examples=examples,
@@ -1073,6 +1096,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             model=self.model,
             is_training_reflection=self.is_training_reflection
         )
+
         # Format the result to the format the metric expects.
 
         if self.data_args.version_2_with_negative:
@@ -1084,19 +1108,15 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
         references = [{"id": ex["id"], "answers": ex[self.answer_column_name]} for ex in examples]
         return EvalPrediction(predictions=formatted_predictions, label_ids=references)
+
 class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
-    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model: PreTrainedModel, model_name_or_path: str = None, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
+    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model_name_or_path = model_name_or_path
-        self.model = model
-        self.MRCModel = model.to(self.device)
-    # def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
-    #     super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-    #     self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    #     self.model_name_or_path = model_name_or_path
-    #     self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
+        self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
+
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
@@ -1176,58 +1196,56 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
                     tokenized_examples["end_positions"].append(token_end_index + 1)
                     tokenized_examples["has_answer_labels"].append(1)
         
-        # for k, v in tokenized_examples.items():
-        #     tokenized_examples[k] = torch.tensor(v, device=self.device)
-        # with torch.no_grad(): 
-        # #Dungf postprocess cua model MRC de gen instance training cho model nay
-        #     predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
-        #                         start_positions=tokenized_examples['start_positions'], 
-        #                         end_positions=tokenized_examples['end_positions'], 
-        #                         has_answer_labels=tokenized_examples['has_answer_labels'], 
-        #                         return_dict=True)
+        for k, v in tokenized_examples.items():
+            tokenized_examples[k] = torch.tensor(v, device=self.device)
+        with torch.no_grad(): 
+        #Dungf postprocess cua model MRC de gen instance training cho model nay
+            predictions = self.MRCModel(input_ids=tokenized_examples['input_ids'], 
+                                start_positions=tokenized_examples['start_positions'], 
+                                end_positions=tokenized_examples['end_positions'], 
+                                has_answer_labels=tokenized_examples['has_answer_labels'], 
+                                return_dict=True)
 
-        # predictions = (predictions['start_logits'],predictions['end_logits'],predictions['has_answer_probs'],predictions['score'],predictions['head_features'])
+        predictions = (predictions['start_logits'],predictions['end_logits'],predictions['has_answer_probs'],predictions['score'],predictions['head_features'])
 
-        # x = Dataset.from_dict(dict(examples))
-        # features = x.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features_reflection,
-        #                 batched=True,
-        #                 remove_columns=x.features)
+        x = Dataset.from_dict(dict(examples))
+        features = x.map(ViMRCDatasetsForPhoBERT(self.tokenizer).prepare_validation_features_reflection,
+                        batched=True,
+                        remove_columns=x.features)
 
-        # instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer, model_name_or_path=self.model_name_or_path).postprocess_qa_predictions(examples=x, 
-        #                     features=features, 
-        #                     predictions=predictions,
-        #                     version_2_with_negative=True,
-        #                     is_training_reflection=True)
+        instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(self.tokenizer, model_name_or_path=self.model_name_or_path).postprocess_qa_predictions(examples=x, 
+                            features=features, 
+                            predictions=predictions,
+                            version_2_with_negative=True,
+                            is_training_reflection=True)
 
-        # start_positions = [value['start_positions'] for key, value in instance_training.items()]
-        # end_positions = [value['end_positions'] for key, value in instance_training.items()]
-        # head_features = [value['head_features'] for key, value in instance_training.items()]
-        # feature_index = [value['feature_index'] for key, value in instance_training.items()]
-        # tokenized_examples['has_answer_labels'] = tokenized_examples['has_answer_labels'].tolist()
-        # tokenized_examples_ = {}
-        # tokenized_examples_['input_ids'] = []
-        # tokenized_examples_['ans_type_ids'] = []
-        # tokenized_examples_['has_answer_labels'] = []
-        # tokenized_examples_['attention_mask'] = []
-        # tokenized_examples_['head_features'] = []
-        # for id, feature_slice in enumerate(feature_index):
-        #     tokenized_examples_['input_ids'].append(tokenized_examples['input_ids'][feature_slice])
-        #     tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
-        #     tokenized_examples_['attention_mask'].append(tokenized_examples['attention_mask'][feature_slice])
-        #     tokenized_examples_['head_features'].append(head_features[id])
-        #     start_position = start_positions[id]
-        #     end_position = end_positions[id]
-        #     ans_type_id = torch.tensor([0]*self.max_seq_length)
-        #     if tokenized_examples_['has_answer_labels'][-1] == 1 and start_position<end_position:
-        #         ans_type_id[0] = 2
-        #     else:
-        #         ans_type_id[0] = 1
-        #     if start_position < end_position:
-        #         ans_type_id[start_position] = 3
-        #         ans_type_id[start_position+1:end_position+1] = 4
-        #     tokenized_examples_['ans_type_ids'].append(ans_type_id)
+        head_features = [value['head_features'] for key, value in instance_training.items()]
+        feature_index = [value['feature_index'] for key, value in instance_training.items()]
+        tokenized_examples['has_answer_labels'] = tokenized_examples['has_answer_labels'].tolist()
+        tokenized_examples_ = {}
+        tokenized_examples_['input_ids'] = []
+        tokenized_examples_['ans_type_ids'] = []
+        tokenized_examples_['has_answer_labels'] = []
+        tokenized_examples_['attention_mask'] = []
+        tokenized_examples_['head_features'] = []
+        for id, feature_slice in enumerate(feature_index):
+            tokenized_examples_['input_ids'].append(tokenized_examples['input_ids'][feature_slice])
+            tokenized_examples_['has_answer_labels'].append(tokenized_examples['has_answer_labels'][feature_slice])
+            tokenized_examples_['attention_mask'].append(tokenized_examples['attention_mask'][feature_slice])
+            tokenized_examples_['head_features'].append(head_features[id])
+            start_position = tokenized_examples['start_positions'][feature_slice]
+            end_position = tokenized_examples['end_positions'][feature_slice]
+            ans_type_id = torch.tensor([0]*self.max_seq_length)
+            if tokenized_examples_['has_answer_labels'][-1] == 0:
+                ans_type_id[0] = 1
+            else:
+                ans_type_id[0] = 2
+            if start_position < end_position:
+                ans_type_id[start_position] = 3
+                ans_type_id[start_position+1:end_position+1] = 4
+            tokenized_examples_['ans_type_ids'].append(ans_type_id)
         
-        return tokenized_examples
+        return tokenized_examples_
     
     def prepare_validation_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
