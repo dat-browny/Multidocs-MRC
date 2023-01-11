@@ -46,6 +46,8 @@ from multi_document_mrc.models_map import get_model_version_classes
 logger = logging.getLogger(__name__)
 
 def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path, max_seq_length):
+    for k, v in tokenized_data.items():
+        tokenized_data[k] = torch.tensor(v, device=device)
     infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
     start_logits = []
     end_logits = []
@@ -84,8 +86,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     end_positions = [value['end_positions'] for key, value in instance_training.items()]
     head_features = [value['head_features'] for key, value in instance_training.items()]
     feature_index = [value['feature_index'] for key, value in instance_training.items()]
-    print(len(feature_index))
-    print(feature_index)
+
     tokenized_examples_ = {}
     tokenized_examples_['input_ids'] = []
     tokenized_examples_['ans_type_ids'] = []
@@ -94,13 +95,16 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     tokenized_examples_['head_features'] = []
 
     for id, feature_slice in tqdm(enumerate(feature_index)):
+        print(1)
         tokenized_examples_['input_ids'].append(tokenized_data['input_ids'][feature_slice])
         tokenized_examples_['has_answer_labels'].append(tokenized_data['has_answer_labels'][feature_slice])
         tokenized_examples_['attention_mask'].append(tokenized_data['attention_mask'][feature_slice])
         tokenized_examples_['head_features'].append(head_features[id])
+        print(2)
         start_position = start_positions[id]
         end_position = end_positions[id]
         ans_type_id = torch.tensor([0]* max_seq_length)
+        print(3)
         if tokenized_examples_['has_answer_labels'][-1] == 1 and start_position<end_position:
             ans_type_id[0] = 2
         else:
@@ -108,6 +112,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
         if start_position < end_position:
             ans_type_id[start_position] = 3
             ans_type_id[start_position+1:end_position+1] = 4
+        print(4)
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
 
     return datasets.Dataset.from_dict(dict(tokenized_examples_))
