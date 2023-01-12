@@ -246,6 +246,8 @@ def main():
     
     train_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
     eval_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
+    model_.cpu()
+    del model_
     data_collator = (
         default_data_collator
         if data_args.pad_to_max_length
