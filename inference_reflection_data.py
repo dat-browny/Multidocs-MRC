@@ -136,6 +136,7 @@ def main():
         datefmt="%m/%d/%Y %H:%M:%S",
         handlers=[logging.StreamHandler(sys.stdout)],
     )
+    model_architecture = get_model_version_classes(model_args.model_architecture)
 
     log_level = training_args.get_process_log_level()
     logger.setLevel(log_level)
@@ -185,14 +186,23 @@ def main():
     # add properties to config
     config.model_architecture = model_args.model_architecture
 
-    tokenizer = PhobertTokenizerFast.from_pretrained(
+    tokenizer = model_architecture.tokenizer_class.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=True,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    model = RobertaForMRCReflection.from_pretrained(
+    model = model_architecture.model_class.from_pretrained(
+        model_args.model_name_or_path,
+        from_tf=bool(".ckpt" in model_args.model_name_or_path),
+        config=config,
+        cache_dir=model_args.cache_dir,
+        revision=model_args.model_revision,
+        use_auth_token=True if model_args.use_auth_token else None,
+    )
+
+    model_ = RobertaForMRCReflection.from_pretrained(
         model_args.model_name_or_path,
         from_tf=bool(".ckpt" in model_args.model_name_or_path),
         config=config,
@@ -232,7 +242,7 @@ def main():
     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
         main_process_first=training_args.main_process_first)
 
-    model.to(device)
+    model_.to(device)
     
 
     print(eval_examples)
