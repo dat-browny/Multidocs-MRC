@@ -248,18 +248,18 @@ def main():
 
     model_.to(device)
     
-    train_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
-    eval_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
-    # model_.cpu()
-    # del model_
+    # train_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
+    # eval_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
+    # # model_.cpu()
+    # # del model_
 
 
     import json
-    with open('train.json', 'w') as fp:
-        json.dump(train_dataset, fp)
+    # with open('train.json', 'w') as fp:
+    #     json.dump(train_dataset, fp)
     
-    with open('validation.json', 'w') as fp:
-        json.dump(eval_dataset, fp)
+    # with open('validation.json', 'w') as fp:
+    #     json.dump(eval_dataset, fp)
 
     train_dataset = datasets.Dataset.from_dict(json.load(open('train.json')))
     eval_dataset = datasets.Dataset.from_dict(json.load(open('validation.json')))    
