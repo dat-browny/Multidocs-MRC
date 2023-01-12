@@ -116,7 +116,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
 
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
 
-    return datasets.Dataset.from_dict(tokenized_examples_)
+    return tokenized_examples_
 
     
 def main():
