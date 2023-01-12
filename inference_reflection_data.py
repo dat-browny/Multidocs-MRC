@@ -111,7 +111,9 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             ans_type_id[0] = 1
         if start_position < end_position:
             ans_type_id[start_position] = 3
-            ans_type_id[start_position+1:end_position+1] = 4
+            for i in range(start_position+1, end_position+1):
+                ans_type_id[i] = 4
+                
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
 
     return datasets.Dataset.from_dict(tokenized_examples_)
