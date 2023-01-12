@@ -74,7 +74,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
 
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
     # x = datasets.Dataset.from_dict(dict(examples))
-    for i in range(len(predictions[-1])):
+    for i in predictions[-1]:
         if torch.isnan(i.any()):
             print(i)
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
