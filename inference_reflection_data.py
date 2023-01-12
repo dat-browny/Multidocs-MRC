@@ -116,7 +116,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
 
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
         if i in [4,6]:
-            print(tokenized_examples_['ans_type_ids'][-1])
+            print(tokenized_examples_['head_features'][-1])
         i+=1
     return tokenized_examples_
 
