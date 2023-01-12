@@ -74,9 +74,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
 
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
     # x = datasets.Dataset.from_dict(dict(examples))
-    for i in predictions[-1]:
-        if torch.isnan(i.any()):
-            print(i)
+
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
                     batched=True,
                     remove_columns=examples.features)
@@ -98,7 +96,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     tokenized_examples_['has_answer_labels'] = []
     tokenized_examples_['attention_mask'] = []
     tokenized_examples_['head_features'] = []
-
+    i=1
     for id, feature_slice in tqdm(enumerate(feature_index)):
         tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice].tolist())
         tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice].tolist())
@@ -117,7 +115,8 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
                 ans_type_id[i] = 4
 
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
-
+        if i in [4,6]:
+            print(tokenized_examples_['ans_type_ids'][-1])
     return tokenized_examples_
 
     
@@ -293,6 +292,7 @@ def main():
     for batch in trainer.get_train_dataloader():
         if torch.any(batch['head_features'].isnan()):
             print(i)
+            print(batch['head_features'])
         i+=1
 
     # # Training
