@@ -233,7 +233,11 @@ def main():
         main_process_first=training_args.main_process_first)
 
     model.to(device)
-        
+    
+
+    print(eval_examples)
+    print(eval_dataset)
+
     train_dataset = convert_to_instance(model=model, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
     eval_dataset = convert_to_instance(model=model, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
     data_collator = (
