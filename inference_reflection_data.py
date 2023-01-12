@@ -261,7 +261,8 @@ def main():
 
     train_dataset = json.load(open('train.json'))
     eval_dataset = json.load(open('validation.json'))    
-
+    print(train_dataset)
+    print(eval_dataset)
     data_collator = (
         default_data_collator
         if data_args.pad_to_max_length
