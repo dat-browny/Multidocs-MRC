@@ -130,7 +130,6 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
         else:
             total_loss = None
 
-        print(123412341231412123124123124124123123124)
         def normalize(batch_tensor):
             batch_tensor -= batch_tensor.min(1, keepdim=True)[0]
             batch_tensor /= batch_tensor.max(1, keepdim=True)[0]
