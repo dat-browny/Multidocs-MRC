@@ -289,9 +289,8 @@ def main():
     )
     i = 1
     for batch in trainer.get_train_dataloader():
-        if i in [1,2]:
-            print(f"batch 4/{len(trainer.get_train_dataloader())}")
-            print(batch)
+        if torch.any(batch['head_features'].isnan()):
+            print(i)
         i+=1
 
     # Training
