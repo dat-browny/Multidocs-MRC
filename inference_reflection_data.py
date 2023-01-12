@@ -259,10 +259,9 @@ def main():
     with open('validation.json', 'w') as fp:
       json.dump(eval_dataset, fp)
 
-    train_dataset = json.load(open('train.json'))
-    eval_dataset = json.load(open('validation.json'))    
-    print(train_dataset)
-    print(eval_dataset)
+    train_dataset = datasets.Dataset.from_dict(json.load(open('train.json')))
+    eval_dataset = datasets.Dataset.from_dict(json.load(open('validation.json')))    
+    
     data_collator = (
         default_data_collator
         if data_args.pad_to_max_length
