@@ -177,7 +177,7 @@ class MRCDatasetsForBERT(QuestionAnsweringDataset):
             # Predict Feature Creation
             with main_process_first(desc="prediction dataset map pre-processing"):
                 predict_dataset = predict_examples.map(
-                    self.prepare_validation_features,
+                    self.prepare_train_features,
                     batched=True,
                     num_proc=self.data_args.preprocessing_num_workers,
                     remove_columns=self.column_names,
