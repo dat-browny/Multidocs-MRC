@@ -288,9 +288,10 @@ def main():
         compute_metrics=compute_metrics
     )
     i = 1
-    for batch in trainer.get_train_dataloader()[:4]:
+    for batch in trainer.get_train_dataloader():
         if i==3:
             print(batch)
+        i+=1
 
     # Training
     if training_args.do_train:
