@@ -247,7 +247,7 @@ def main():
         main_process_first=training_args.main_process_first)
 
     model_.to(device)
-    
+    print(1)
     # train_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
     # eval_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
     # # model_.cpu()
@@ -274,7 +274,7 @@ def main():
 
     def compute_metrics(p: EvalPrediction):
         return metric.compute(predictions=p.predictions, references=p.label_ids)
-
+    print(2)
     # Initialize our Trainer
     trainer = ReflectionTrainer(
         model=model,
@@ -287,6 +287,10 @@ def main():
         post_process_function=dataset_obj.post_processing_function,
         compute_metrics=compute_metrics
     )
+    i = 1
+    for batch in trainer.get_train_dataloader():
+        while i<4:
+            print(batch)
 
     # Training
     if training_args.do_train:
