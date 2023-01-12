@@ -254,44 +254,44 @@ def main():
     # # del model_
 
 
-    # import json
-    # # with open('train.json', 'w') as fp:
-    # #     json.dump(train_dataset, fp)
+    import json
+    with open('train.json', 'w') as fp:
+        json.dump(train_dataset, fp)
     
-    # # with open('validation.json', 'w') as fp:
-    # #     json.dump(eval_dataset, fp)
+    with open('validation.json', 'w') as fp:
+        json.dump(eval_dataset, fp)
 
-    # train_dataset = datasets.Dataset.from_dict(json.load(open('train.json')))
-    # eval_dataset = datasets.Dataset.from_dict(json.load(open('validation.json')))    
+    train_dataset = datasets.Dataset.from_dict(json.load(open('train.json')))
+    eval_dataset = datasets.Dataset.from_dict(json.load(open('validation.json')))    
     
-    # data_collator = (
-    #     default_data_collator
-    #     if data_args.pad_to_max_length
-    #     else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
-    # )
+    data_collator = (
+        default_data_collator
+        if data_args.pad_to_max_length
+        else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
+    )
 
-    # metric = evaluate.load("f1")
+    metric = evaluate.load("f1")
 
-    # def compute_metrics(p: EvalPrediction):
-    #     return metric.compute(predictions=p.predictions, references=p.label_ids)
+    def compute_metrics(p: EvalPrediction):
+        return metric.compute(predictions=p.predictions, references=p.label_ids)
 
-    # # Initialize our Trainer
-    # trainer = ReflectionTrainer(
-    #     model=model,
-    #     args=training_args,
-    #     train_dataset=train_dataset if training_args.do_train else None,
-    #     eval_dataset=eval_dataset if training_args.do_eval else None,
-    #     eval_examples=eval_examples if training_args.do_eval else None,
-    #     tokenizer=tokenizer,
-    #     data_collator=data_collator,
-    #     post_process_function=dataset_obj.post_processing_function,
-    #     compute_metrics=compute_metrics
-    # )
-    # i = 1
-    # for batch in trainer.get_train_dataloader():
-    #     if torch.any(batch['head_features'].isnan()):
-    #         print(i)
-    #     i+=1
+    # Initialize our Trainer
+    trainer = ReflectionTrainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset if training_args.do_train else None,
+        eval_dataset=eval_dataset if training_args.do_eval else None,
+        eval_examples=eval_examples if training_args.do_eval else None,
+        tokenizer=tokenizer,
+        data_collator=data_collator,
+        post_process_function=dataset_obj.post_processing_function,
+        compute_metrics=compute_metrics
+    )
+    i = 1
+    for batch in trainer.get_train_dataloader():
+        if torch.any(batch['head_features'].isnan()):
+            print(i)
+        i+=1
 
     # # Training
     # if training_args.do_train:
