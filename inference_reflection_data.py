@@ -113,7 +113,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             ans_type_id[start_position] = 3
             for i in range(start_position+1, end_position+1):
                 ans_type_id[i] = 4
-                
+
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
 
     return datasets.Dataset.from_dict(tokenized_examples_)
@@ -250,6 +250,18 @@ def main():
     eval_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
     # model_.cpu()
     # del model_
+
+
+    import json
+    with open('train.json', 'w') as fp:
+        json.dump(train_dataset, fp)
+    
+    with open('validation.json', 'w') as fp:
+      json.dump(eval_dataset, fp)
+
+    train_dataset = json.load(open('train.json'))
+    eval_dataset = json.load(open('validation.json'))    
+
     data_collator = (
         default_data_collator
         if data_args.pad_to_max_length
