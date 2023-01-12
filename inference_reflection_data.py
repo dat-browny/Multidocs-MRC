@@ -289,7 +289,8 @@ def main():
     )
     i = 1
     for batch in trainer.get_train_dataloader():
-        if i==3:
+        if i==4:
+            print(f"batch 4/{len(trainer.get_train_dataloader())}")
             print(batch)
         i+=1
 
