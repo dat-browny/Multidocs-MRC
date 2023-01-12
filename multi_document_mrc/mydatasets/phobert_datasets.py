@@ -1253,7 +1253,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         
         return tokenized_examples
     
-    def prepare_train_features(self, examples):
+    def prepare_validation_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
         # left whitespace
