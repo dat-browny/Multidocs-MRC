@@ -49,6 +49,8 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
 
     tokenized_data_dict = tokenized_data.to_dict()
     for k, v in tokenized_data_dict.items():
+        print(k)
+        print(v)
         tokenized_data_dict[k] = torch.tensor(v, device=device)
 
     infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
