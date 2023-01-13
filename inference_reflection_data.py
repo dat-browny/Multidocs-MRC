@@ -59,19 +59,23 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     head_features = []
 
     with torch.no_grad():
-
+        i=2
         for batch in tqdm(infer_data):
             output = model(input_ids=batch['input_ids'].to(device), 
                                     start_positions=batch['start_positions'].to(device), 
                                     end_positions=batch['end_positions'].to(device), 
                                     has_answer_labels=batch['has_answer_labels'].to(device), 
                                     return_dict=True)
+            while i<3:
+                print(output['head_features'])
+            
             start_logits += output['start_logits'].tolist()
             end_logits += output['end_logits'].tolist()
             has_answer_probs += output['has_answer_probs'].tolist()
             score += output['score'].tolist()
             head_features += output['head_features'].tolist()
-    for i in range(10):
+            i+=1
+    for i in range(16):
         print(head_features[i])
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
     # x = datasets.Dataset.from_dict(dict(examples))
