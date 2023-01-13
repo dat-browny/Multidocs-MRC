@@ -137,8 +137,6 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
             means = batch_tensor.mean(dim=1, keepdim=True)
             stds = batch_tensor.std(dim=1, keepdim=True)
             normalized_data = (batch_tensor - means) / stds
-            if torch.isnan(normalized_data.any()):
-                print(batch_tensor)
             return normalized_data
 
         ans_type_predicted = [torch.argmax(prob) for prob in has_answer_probs]
