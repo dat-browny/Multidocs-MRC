@@ -146,6 +146,7 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
         ans_type_probs = has_answer_probs
         ans_type_prob = torch.tensor([[has_answer_probs[i,j]] for i, j in enumerate(ans_type_predicted)], device=input_ids.device)
         start_logits_top = normalize(start_logits.sort(descending=True)[0][:,:5])
+        end_logits_before = end_logits.sort(descending=True)[0][:,:5]
         end_logits_top = normalize(end_logits.sort(descending=True)[0][:,:5])
         start_probs_top = normalize(start_probs.sort(descending=True)[0][:,:5])
         end_probs_top = normalize(end_probs.sort(descending=True)[0][:,:5])
@@ -154,7 +155,8 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
 
         for i in range(len(head)):
             if torch.isnan(head[i]).any():
-                print(i)
+                print(head[i])
+                print(end_logits_before)
         head_features = torch.cat((score, ans_type, ans_type_probs, ans_type_prob, start_logits_top, end_logits_top, start_probs_top, end_probs_top), 1)
 
         if not return_dict:
