@@ -71,7 +71,8 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             has_answer_probs += output['has_answer_probs'].tolist()
             score += output['score'].tolist()
             head_features += output['head_features'].tolist()
-
+    for i in range(10):
+        print(head_features[i])
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
     # x = datasets.Dataset.from_dict(dict(examples))
 
