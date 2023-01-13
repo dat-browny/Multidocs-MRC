@@ -67,7 +67,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
                                     has_answer_labels=batch['has_answer_labels'].to(device), 
                                     return_dict=True)
             while i<3:
-                print(output['head_features'])
+                print(torch.isnan(output['head_features'].any()))
                 i+=1
     
             start_logits += output['start_logits'].tolist()
