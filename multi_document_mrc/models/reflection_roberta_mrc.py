@@ -149,14 +149,10 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
         start_probs_top = normalize(start_probs.sort(descending=True)[0][:,:5])
         end_probs_top = normalize(end_probs.sort(descending=True)[0][:,:5])
 
-        head = (start_logits, end_logits, start_probs, end_probs)
+        head = (start_logits.sort(descending=True)[0][:,:5], end_logits.sort(descending=True)[0][:,:5], start_probs.sort(descending=True)[0][:,:5], end_probs.sort(descending=True)[0][:,:5])
         head_top = (start_logits_top, end_logits_top, start_probs_top, end_probs_top)
 
-        for i in range(len(head)):
-            if torch.isnan(head[i]).any():
-                print(i)
-                print(head[i])
-        
+
         for i in range(len(head_top)):
             if torch.isnan(head_top[i]).any():
                 print(i)
