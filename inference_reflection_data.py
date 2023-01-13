@@ -68,13 +68,14 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
                                     return_dict=True)
             while i<3:
                 print(output['head_features'])
-            
+                i+=1
+    
             start_logits += output['start_logits'].tolist()
             end_logits += output['end_logits'].tolist()
             has_answer_probs += output['has_answer_probs'].tolist()
             score += output['score'].tolist()
             head_features += output['head_features'].tolist()
-            i+=1
+            
     for i in range(16):
         print(head_features[i])
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
