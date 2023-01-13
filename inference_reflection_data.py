@@ -66,10 +66,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
                                     end_positions=batch['end_positions'].to(device), 
                                     has_answer_labels=batch['has_answer_labels'].to(device), 
                                     return_dict=True)
-            while i<3:
-                for tensor_ in output['head_features']:
-                    print(torch.isnan(tensor_.any()))
-                i+=1
+
             start_logits += output['start_logits'].tolist()
             end_logits += output['end_logits'].tolist()
             has_answer_probs += output['has_answer_probs'].tolist()

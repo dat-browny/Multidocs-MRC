@@ -150,6 +150,11 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
         start_probs_top = normalize(start_probs.sort(descending=True)[0][:,:5])
         end_probs_top = normalize(end_probs.sort(descending=True)[0][:,:5])
 
+        head = (start_logits_top, end_logits_top, start_probs_top, end_probs_top)
+
+        for i in range(len(head)):
+            if torch.isnan(head[i]).any():
+                print(i)
         head_features = torch.cat((score, ans_type, ans_type_probs, ans_type_prob, start_logits_top, end_logits_top, start_probs_top, end_probs_top), 1)
 
         if not return_dict:
