@@ -122,31 +122,26 @@ def save_datasets(datasets, dir):
         os.mkdir(dir)
     dataset_name_root = dir.split("/")[-1] 
     if len(datasets) == 1:
-        if datasets is not None:
-            dataset_name += '.json'
-            path = os.path.join(dir, dataset_name)
-            with open(path, 'w') as fp:
-                json.dump(datasets, fp)
-        else: 
-            logger.warn("For step Training Reflection, Training dataset must required, please add train_file, and do_train arguments")
+        dataset_name = dataset_name_root + '.json'
+        path = os.path.join(dir, dataset_name)
+        with open(path, 'w') as fp:
+            json.dump(datasets, fp)
+        logger.info(f"Saving {dataset_name_root} at {dir}")
+
     else:
         for id, dataset in enumerate(datasets):
             if id == 0:
                 dataset_name = dataset_name_root + '_datasets.json'
-                if dataset is not None:
-                    path = os.path.join(dir, dataset_name_root)
-                    with open(path, 'w') as fp:
-                        json.dump(datasets, fp)
-                else: 
-                    logger.warn(f"For step {dataset_name_root} Reflection, {dataset_name_root} dataset must required")          
+                path = os.path.join(dir, dataset_name_root)
+                with open(path, 'w') as fp:
+                    json.dump(datasets, fp)        
             else: 
                 dataset_name = dataset_name_root + '_datasets.json'
-                if dataset is not None:
-                    path = os.path.join(dir, dataset_name_root)
-                    with open(path, 'w') as fp:
-                        json.dump(datasets, fp)
-                else: 
-                    logger.warn(f"For step {dataset_name_root} Reflection, {dataset_name_root} dataset must required")     
+                path = os.path.join(dir, dataset_name_root)
+                with open(path, 'w') as fp:
+                    json.dump(datasets, fp)
+        logger.info(f"Saving {dataset_name_root} at {dir}")
+        
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
@@ -282,6 +277,9 @@ def main():
                                         device=device, batch_size=32, 
                                         model_name_or_path=model_args.model_name_or_path, 
                                         max_seq_length=data_args.max_seq_length)
+        train_path = os.path.join(training_args.output_dir, "train")
+        save_datasets((train_dataset), train_path)
+
     if training_args.do_eval: 
         eval_dataset = convert_to_instance(model=model_, 
                                         tokenizer=tokenizer, 
@@ -290,7 +288,9 @@ def main():
                                         device=device, batch_size=32, 
                                         model_name_or_path=model_args.model_name_or_path, 
                                         max_seq_length=data_args.max_seq_length)
-     
+        eval_path = os.path.join(training_args.output_dir, "eval")
+        save_datasets((eval_dataset, eval_examples.to_dict()), eval_path)
+
     if training_args.do_predict: 
         predict_dataset = convert_to_instance(model=model_, 
                                         tokenizer=tokenizer, 
@@ -299,15 +299,8 @@ def main():
                                         device=device, batch_size=32, 
                                         model_name_or_path=model_args.model_name_or_path, 
                                         max_seq_length=data_args.max_seq_length)
-
-    dataset_name = ["train", "eval", "predict"]
-    dataset = [train_dataset,  (eval_dataset, eval_examples.to_dict()), (predict_dataset, predict_examples.to_dict())]
-
-    for id, name in enumerate(dataset_name):
-        path = os.path.join(training_args.output_dir, name)
-        save_datasets(dataset[id], path)
-        logger.info(f'Saving {name} dataset for step Reflection at {path}')
-
+        predict_path = os.path.join(training_args.output_dir, "predict")
+        save_datasets((predict_dataset, predict_examples.to_dict()), predict_path)
 
 if __name__ == "__main__":
     main()
