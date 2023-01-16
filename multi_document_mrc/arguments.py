@@ -157,6 +157,9 @@ class DataTrainingArguments:
             and self.train_file is None
             and self.validation_file is None
             and self.test_file is None
+            and self.train_dir is None
+            and self.validation_dir is None
+            and self.test_dir is None
         ):
             raise ValueError("Need either a dataset name or a training/validation file/test_file.")
         else:
