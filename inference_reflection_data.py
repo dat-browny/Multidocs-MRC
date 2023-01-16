@@ -131,36 +131,36 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
 
     return tokenized_examples_
 
-def save_datasets(datasets, dir):
-    if not os.path.isdir(dir):
-        os.mkdir(dir)
-    dataset_name_root = dir.split("/")[-1] 
-    if len(datasets) == 1:
-        if datasets is not None:
-            dataset_name += '.json'
-            path = os.path.join(dir, dataset_name)
-            with open(path, 'w') as fp:
-                json.dump(datasets, fp)
-        else: 
-            logger.warn("For step Training Reflection, Training dataset must required, please add train_file, and do_train arguments")
-    else:
-        for id, dataset in enumerate(datasets):
-            if id == 0:
-                dataset_name = dataset_name_root + '_datasets.json'
-                if dataset is not None:
-                    path = os.path.join(dir, dataset_name_root)
-                    with open(path, 'w') as fp:
-                        json.dump(datasets, fp)
-                else: 
-                    logger.warn(f"For step {dataset_name_root} Reflection, {dataset_name_root} dataset must required")          
-            else: 
-                dataset_name = dataset_name_root + '_datasets.json'
-                if dataset is not None:
-                    path = os.path.join(dir, dataset_name_root)
-                    with open(path, 'w') as fp:
-                        json.dump(datasets, fp)
-                else: 
-                    logger.warn(f"For step {dataset_name_root} Reflection, {dataset_name_root} dataset must required")     
+# def save_datasets(datasets, dir):
+#     if not os.path.isdir(dir):
+#         os.mkdir(dir)
+#     dataset_name_root = dir.split("/")[-1] 
+#     if len(datasets) == 1:
+#         if datasets is not None:
+#             dataset_name += '.json'
+#             path = os.path.join(dir, dataset_name)
+#             with open(path, 'w') as fp:
+#                 json.dump(datasets, fp)
+#         else: 
+#             logger.warn("For step Training Reflection, Training dataset must required, please add train_file, and do_train arguments")
+#     else:
+#         for id, dataset in enumerate(datasets):
+#             if id == 0:
+#                 dataset_name = dataset_name_root + '_datasets.json'
+#                 if dataset is not None:
+#                     path = os.path.join(dir, dataset_name_root)
+#                     with open(path, 'w') as fp:
+#                         json.dump(datasets, fp)
+#                 else: 
+#                     logger.warn(f"For step {dataset_name_root} Reflection, {dataset_name_root} dataset must required")          
+#             else: 
+#                 dataset_name = dataset_name_root + '_datasets.json'
+#                 if dataset is not None:
+#                     path = os.path.join(dir, dataset_name_root)
+#                     with open(path, 'w') as fp:
+#                         json.dump(datasets, fp)
+#                 else: 
+#                     logger.warn(f"For step {dataset_name_root} Reflection, {dataset_name_root} dataset must required")     
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
