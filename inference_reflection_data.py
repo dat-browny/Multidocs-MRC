@@ -3,8 +3,8 @@ import sys
 import torch
 import logging
 import json
-import datasets
-import evaluate
+# import datasets
+
 import transformers
 from tqdm import tqdm
 from transformers import (
@@ -12,9 +12,6 @@ from transformers import (
     HfArgumentParser,
     PreTrainedTokenizerFast,
     TrainingArguments,
-    DataCollatorWithPadding,
-    EvalPrediction,
-    default_data_collator,
     set_seed,
 )
 from multi_document_mrc.mydatasets.phobert_datasets import (
@@ -23,16 +20,13 @@ from multi_document_mrc.mydatasets.phobert_datasets import (
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data import DataLoader
 from transformers.trainer_utils import get_last_checkpoint
-from multi_document_mrc.models.tokenization_phobert_fast import PhobertTokenizerFast
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
 from dataclasses import dataclass
 from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection
 from multi_document_mrc.mydatasets.phobert_datasets import ViMRCDatasetsForPhoBERT, ViMRCDatasetsForPhoBERTNoHapReflection
-from multi_document_mrc.trainer import ReflectionTrainer
 
 from transformers.trainer_utils import get_last_checkpoint
-from transformers.utils.versions import require_version
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
 
@@ -164,7 +158,7 @@ def main():
 
     log_level = training_args.get_process_log_level()
     logger.setLevel(log_level)
-    datasets.utils.logging.set_verbosity(log_level)
+    # datasets.utils.logging.set_verbosity(log_level)
     transformers.utils.logging.set_verbosity(log_level)
     transformers.utils.logging.enable_default_handler()
     transformers.utils.logging.enable_explicit_format()
