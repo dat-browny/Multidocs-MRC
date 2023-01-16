@@ -27,7 +27,7 @@ import torch
 # from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 # from multi_document_mrc.models_map import get_model_version_classes
 # from dataclasses import dataclass
-from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection
+# from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection
 # from multi_document_mrc.mydatasets.phobert_datasets import ViMRCDatasetsForPhoBERT, ViMRCDatasetsForPhoBERTNoHapReflection
 # from multi_document_mrc.trainer import ReflectionTrainer
 
@@ -39,7 +39,7 @@ from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflec
 import logging
 import os
 import sys
-import datasets
+# import datasets
 import evaluate
 import transformers
 from multi_document_mrc.trainer import QuestionAnsweringTrainer
