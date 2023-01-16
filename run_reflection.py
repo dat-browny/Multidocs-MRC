@@ -140,7 +140,6 @@ def main():
     # Datasets
     dataset_obj = model_architecture.dataset_class(
         tokenizer=tokenizer,
-        data_args=data_args,
         cache_dir=model_args.cache_dir,
         do_train=training_args.do_train,
         do_eval=training_args.do_eval,
