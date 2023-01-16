@@ -1,8 +1,20 @@
+import os
+import sys
+import torch
+import logging
+import json
+import datasets
+import evaluate
+import transformers
+from tqdm import tqdm
 from transformers import (
     RobertaConfig,
     HfArgumentParser,
     PreTrainedTokenizerFast,
     TrainingArguments,
+    DataCollatorWithPadding,
+    EvalPrediction,
+    default_data_collator,
     set_seed,
 )
 from multi_document_mrc.mydatasets.phobert_datasets import (
@@ -17,26 +29,8 @@ from multi_document_mrc.models_map import get_model_version_classes
 from dataclasses import dataclass
 from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection
 from multi_document_mrc.mydatasets.phobert_datasets import ViMRCDatasetsForPhoBERT, ViMRCDatasetsForPhoBERTNoHapReflection
-import os
-import sys
-import torch
-import logging
-import transformers
-import datasets
-from tqdm import tqdm
-
-import evaluate
-
 from multi_document_mrc.trainer import ReflectionTrainer
-from transformers import (
-    DataCollatorWithPadding,
-    EvalPrediction,
-    HfArgumentParser,
-    PreTrainedTokenizerFast,
-    TrainingArguments,
-    default_data_collator,
-    set_seed,
-)
+
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils.versions import require_version
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
@@ -59,7 +53,6 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     head_features = []
 
     with torch.no_grad():
-        i=2
         for batch in tqdm(infer_data):
             output = model(input_ids=batch['input_ids'].to(device), 
                                     start_positions=batch['start_positions'].to(device), 
@@ -97,7 +90,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     tokenized_examples_['has_answer_labels'] = []
     tokenized_examples_['attention_mask'] = []
     tokenized_examples_['head_features'] = []
-    i=1
+
     for id, feature_slice in tqdm(enumerate(feature_index)):
         tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice].tolist())
         tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice].tolist())
@@ -114,14 +107,40 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             ans_type_id[start_position] = 3
             for i in range(start_position+1, end_position+1):
                 ans_type_id[i] = 4
-
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
-        if i in [4,6]:
-            print(tokenized_examples_['head_features'][-1])
-        i+=1
+
     return tokenized_examples_
 
-    
+def save_datasets(datasets, dir):
+    if not os.path.isdir(dir):
+        os.mkdir(dir)
+    dataset_name_root = dir.split("/")[-1] 
+    if len(datasets) == 1:
+        if datasets is not None:
+            dataset_name += '.json'
+            path = os.path.join(dir, dataset_name)
+            with open(path, 'w') as fp:
+                json.dump(datasets, fp)
+        else: 
+            logger.warn("For step Training Reflection, Training dataset must required, please add train_file, and do_train arguments")
+    else:
+        for id, dataset in enumerate(datasets):
+            if id == 0:
+                dataset_name = dataset_name_root + '_datasets.json'
+                if dataset is not None:
+                    path = os.path.join(dir, dataset_name_root)
+                    with open(path, 'w') as fp:
+                        json.dump(datasets, fp)
+                else: 
+                    logger.warn(f"For step {dataset_name_root} Reflection, {dataset_name_root} dataset must required")          
+            else: 
+                dataset_name = dataset_name_root + '_examples.json'
+                if dataset is not None:
+                    path = os.path.join(dir, dataset_name_root)
+                    with open(path, 'w') as fp:
+                        json.dump(datasets, fp)
+                else: 
+                    logger.warn(f"For step {dataset_name_root} Reflection, {dataset_name_root} dataset must required")     
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
@@ -235,8 +254,6 @@ def main():
         model=model,
         model_name_or_path=model_args.model_name_or_path
     )
-
-
     
     train_dataset, train_examples = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
@@ -251,96 +268,117 @@ def main():
 
     model_.to(device)
 
-    train_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
-    eval_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
-
-    import json
-    with open('train.json', 'w') as fp:
-        json.dump(train_dataset, fp)
-    
-    with open('validation.json', 'w') as fp:
-        json.dump(eval_dataset, fp)
-
-    train_dataset = datasets.Dataset.from_dict(json.load(open('train.json')))
-    eval_dataset = datasets.Dataset.from_dict(json.load(open('validation.json')))    
-    
-    data_collator = (
-        default_data_collator
-        if data_args.pad_to_max_length
-        else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
-    )
-
-    metric = evaluate.load("f1")
-
-    def compute_metrics(p: EvalPrediction):
-        return metric.compute(predictions=p.predictions, references=p.label_ids)
-
-    # Initialize our Trainer
-    trainer = ReflectionTrainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset if training_args.do_train else None,
-        eval_dataset=eval_dataset if training_args.do_eval else None,
-        eval_examples=eval_examples if training_args.do_eval else None,
-        tokenizer=tokenizer,
-        data_collator=data_collator,
-        post_process_function=dataset_obj.post_processing_function,
-        compute_metrics=compute_metrics
-    )
-
-    # Training
     if training_args.do_train:
-        checkpoint = None
-        if training_args.resume_from_checkpoint is not None:
-            checkpoint = training_args.resume_from_checkpoint
-        elif last_checkpoint is not None:
-            checkpoint = last_checkpoint
-        train_result = trainer.train(resume_from_checkpoint=checkpoint)
-        trainer.save_model()  # Saves the tokenizer too for easy upload
+        train_dataset = convert_to_instance(model=model_, 
+                                        tokenizer=tokenizer, 
+                                        examples=train_examples, 
+                                        tokenized_data=train_dataset, 
+                                        device=device, batch_size=32, 
+                                        model_name_or_path=model_args.model_name_or_path, 
+                                        max_seq_length=data_args.max_seq_length)
+    if training_args.do_eval: 
+        eval_dataset = convert_to_instance(model=model_, 
+                                        tokenizer=tokenizer, 
+                                        examples=eval_examples, 
+                                        tokenized_data=eval_dataset, 
+                                        device=device, batch_size=32, 
+                                        model_name_or_path=model_args.model_name_or_path, 
+                                        max_seq_length=data_args.max_seq_length)
+     
+    if training_args.do_predict: 
+        predict_dataset = convert_to_instance(model=model_, 
+                                        tokenizer=tokenizer, 
+                                        examples=predict_examples, 
+                                        tokenized_data=predict_dataset, 
+                                        device=device, batch_size=32, 
+                                        model_name_or_path=model_args.model_name_or_path, 
+                                        max_seq_length=data_args.max_seq_length)
 
-        metrics = train_result.metrics
-        max_train_samples = (
-            data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
-        )
-        metrics["train_samples"] = min(max_train_samples, len(train_dataset))
+    dataset_name = ["train", "eval", "predict"]
+    dataset = [train_dataset,  (eval_dataset, eval_examples), (predict_dataset, predict_examples)]
 
-        trainer.log_metrics("train", metrics)
-        trainer.save_metrics("train", metrics)
-        trainer.save_state()
+    for id, name in enumerate(dataset_name):
+        path = os.path.join(training_args.output_dir, name)
+        save_datasets(dataset[id], path)
+        logger.info(f'Saving {name} dataset for step Reflection at {path}')
 
-    # Evaluation
-    if training_args.do_eval:
-        logger.info("*** Evaluate ***")
-        metrics = trainer.evaluate()
+    # data_collator = (
+    #     default_data_collator
+    #     if data_args.pad_to_max_length
+    #     else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
+    # )
 
-        max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
-        metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
+    # metric = evaluate.load("f1")
 
-        trainer.log_metrics("eval", metrics)
-        trainer.save_metrics("eval", metrics)
+    # def compute_metrics(p: EvalPrediction):
+    #     return metric.compute(predictions=p.predictions, references=p.label_ids)
 
-    # Prediction
-    if training_args.do_predict:
-        logger.info("*** Predict ***")
-        results = trainer.predict(predict_dataset, predict_examples)
-        metrics = results.metrics
+    # # Initialize our Trainer
+    # trainer = ReflectionTrainer(
+    #     model=model,
+    #     args=training_args,
+    #     train_dataset=train_dataset if training_args.do_train else None,
+    #     eval_dataset=eval_dataset if training_args.do_eval else None,
+    #     eval_examples=eval_examples if training_args.do_eval else None,
+    #     tokenizer=tokenizer,
+    #     data_collator=data_collator,
+    #     post_process_function=dataset_obj.post_processing_function,
+    #     compute_metrics=compute_metrics
+    # )
 
-        max_predict_samples = (
-            data_args.max_predict_samples if data_args.max_predict_samples is not None else len(predict_dataset)
-        )
-        metrics["predict_samples"] = min(max_predict_samples, len(predict_dataset))
+    # # Training
+    # if training_args.do_train:
+    #     checkpoint = None
+    #     if training_args.resume_from_checkpoint is not None:
+    #         checkpoint = training_args.resume_from_checkpoint
+    #     elif last_checkpoint is not None:
+    #         checkpoint = last_checkpoint
+    #     train_result = trainer.train(resume_from_checkpoint=checkpoint)
+    #     trainer.save_model()  # Saves the tokenizer too for easy upload
 
-        trainer.log_metrics("predict", metrics)
-        trainer.save_metrics("predict", metrics)
+    #     metrics = train_result.metrics
+    #     max_train_samples = (
+    #         data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
+    #     )
+    #     metrics["train_samples"] = min(max_train_samples, len(train_dataset))
 
-    kwargs = {"finetuned_from": model_args.model_name_or_path, "tasks": "question-answering"}
-    if data_args.dataset_name is not None:
-        kwargs["dataset_tags"] = data_args.dataset_name
-        if data_args.dataset_config_name is not None:
-            kwargs["dataset_args"] = data_args.dataset_config_name
-            kwargs["dataset"] = f"{data_args.dataset_name} {data_args.dataset_config_name}"
-        else:
-            kwargs["dataset"] = data_args.dataset_name
+    #     trainer.log_metrics("train", metrics)
+    #     trainer.save_metrics("train", metrics)
+    #     trainer.save_state()
+
+    # # Evaluation
+    # if training_args.do_eval:
+    #     logger.info("*** Evaluate ***")
+    #     metrics = trainer.evaluate()
+
+    #     max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
+    #     metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
+
+    #     trainer.log_metrics("eval", metrics)
+    #     trainer.save_metrics("eval", metrics)
+
+    # # Prediction
+    # if training_args.do_predict:
+    #     logger.info("*** Predict ***")
+    #     results = trainer.predict(predict_dataset, predict_examples)
+    #     metrics = results.metrics
+
+    #     max_predict_samples = (
+    #         data_args.max_predict_samples if data_args.max_predict_samples is not None else len(predict_dataset)
+    #     )
+    #     metrics["predict_samples"] = min(max_predict_samples, len(predict_dataset))
+
+    #     trainer.log_metrics("predict", metrics)
+    #     trainer.save_metrics("predict", metrics)
+
+    # kwargs = {"finetuned_from": model_args.model_name_or_path, "tasks": "question-answering"}
+    # if data_args.dataset_name is not None:
+    #     kwargs["dataset_tags"] = data_args.dataset_name
+    #     if data_args.dataset_config_name is not None:
+    #         kwargs["dataset_args"] = data_args.dataset_config_name
+    #         kwargs["dataset"] = f"{data_args.dataset_name} {data_args.dataset_config_name}"
+    #     else:
+    #         kwargs["dataset"] = data_args.dataset_name
 
 
 if __name__ == "__main__":
