@@ -59,7 +59,6 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     head_features = []
 
     with torch.no_grad():
-        i=2
         for batch in tqdm(infer_data):
             output = model(input_ids=batch['input_ids'].to(device), 
                                     start_positions=batch['start_positions'].to(device), 
@@ -97,7 +96,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     tokenized_examples_['has_answer_labels'] = []
     tokenized_examples_['attention_mask'] = []
     tokenized_examples_['head_features'] = []
-    i=1
+
     for id, feature_slice in tqdm(enumerate(feature_index)):
         tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice].tolist())
         tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice].tolist())
@@ -114,14 +113,40 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             ans_type_id[start_position] = 3
             for i in range(start_position+1, end_position+1):
                 ans_type_id[i] = 4
-
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
-        if i in [4,6]:
-            print(tokenized_examples_['head_features'][-1])
-        i+=1
+
     return tokenized_examples_
 
-    
+def save_datasets(datasets, dir):
+    if not os.path.isdir(dir):
+        os.mkdir(dir)
+    dataset_name_root = dir.split("/")[-1] 
+    if len(datasets) == 1:
+        if datasets is not None:
+            dataset_name += '.json'
+            path = os.path.join(dir, dataset_name)
+            with open(path, 'w') as fp:
+                json.dump(datasets, fp)
+        else: 
+            logger.warn("For step Training Reflection, Training dataset must required, please add train_file, and do_train arguments")
+    else:
+        for id, dataset in enumerate(datasets):
+            if id == 0:
+                dataset_name = dataset_name_root + '_datasets.json'
+                if dataset is not None:
+                    path = os.path.join(dir, dataset_name_root)
+                    with open(path, 'w') as fp:
+                        json.dump(datasets, fp)
+                else: 
+                    logger.warn(f"For step {dataset_name_root} Reflection, {dataset_name_root} dataset must required")          
+            else: 
+                dataset_name = dataset_name_root + '_datasets.json'
+                if dataset is not None:
+                    path = os.path.join(dir, dataset_name_root)
+                    with open(path, 'w') as fp:
+                        json.dump(datasets, fp)
+                else: 
+                    logger.warn(f"For step {dataset_name_root} Reflection, {dataset_name_root} dataset must required")     
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
@@ -235,8 +260,6 @@ def main():
         model=model,
         model_name_or_path=model_args.model_name_or_path
     )
-
-
     
     train_dataset, train_examples = dataset_obj.get_train_dataset(
         main_process_first=training_args.main_process_first
@@ -251,19 +274,40 @@ def main():
 
     model_.to(device)
 
-    train_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=train_examples, tokenized_data=train_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
-    eval_dataset = convert_to_instance(model=model_, tokenizer=tokenizer, examples=eval_examples, tokenized_data=eval_dataset, device=device, batch_size=32, model_name_or_path=model_args.model_name_or_path, max_seq_length=data_args.max_seq_length)
+    if training_args.do_train:
+        train_dataset = convert_to_instance(model=model_, 
+                                        tokenizer=tokenizer, 
+                                        examples=train_examples, 
+                                        tokenized_data=train_dataset, 
+                                        device=device, batch_size=32, 
+                                        model_name_or_path=model_args.model_name_or_path, 
+                                        max_seq_length=data_args.max_seq_length)
+    if training_args.do_eval: 
+        eval_dataset = convert_to_instance(model=model_, 
+                                        tokenizer=tokenizer, 
+                                        examples=eval_examples, 
+                                        tokenized_data=eval_dataset, 
+                                        device=device, batch_size=32, 
+                                        model_name_or_path=model_args.model_name_or_path, 
+                                        max_seq_length=data_args.max_seq_length)
+     
+    if training_args.do_predict: 
+        predict_dataset = convert_to_instance(model=model_, 
+                                        tokenizer=tokenizer, 
+                                        examples=predict_examples, 
+                                        tokenized_data=predict_dataset, 
+                                        device=device, batch_size=32, 
+                                        model_name_or_path=model_args.model_name_or_path, 
+                                        max_seq_length=data_args.max_seq_length)
 
-    import json
-    with open('train.json', 'w') as fp:
-        json.dump(train_dataset, fp)
-    
-    with open('validation.json', 'w') as fp:
-        json.dump(eval_dataset, fp)
+    dataset_name = ["train", "eval", "predict"]
+    dataset = [train_dataset,  (eval_dataset, eval_examples), (predict_dataset, predict_examples)]
 
-    train_dataset = datasets.Dataset.from_dict(json.load(open('train.json')))
-    eval_dataset = datasets.Dataset.from_dict(json.load(open('validation.json')))    
-    
+    for id, name in enumerate(dataset_name):
+        path = os.path.join(training_args.output_dir, name)
+        save_datasets(dataset[id], path)
+        logger.info(f'Saving {name} dataset for step Reflection at {path}')
+
     data_collator = (
         default_data_collator
         if data_args.pad_to_max_length
