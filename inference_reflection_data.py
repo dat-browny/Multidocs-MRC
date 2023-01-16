@@ -40,7 +40,7 @@ import logging
 import os
 import sys
 # import datasets
-import evaluate
+# import evaluate
 import transformers
 from multi_document_mrc.trainer import QuestionAnsweringTrainer
 from transformers import (
