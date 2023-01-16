@@ -161,7 +161,7 @@ def main():
     model_architecture = get_model_version_classes(model_args.model_architecture)
 
     log_level = training_args.get_process_log_level()
-    logger.setLevel(log_level)
+    logger.setLevel(logging.INFO)
     datasets.utils.logging.set_verbosity(log_level)
     transformers.utils.logging.set_verbosity(log_level)
     transformers.utils.logging.enable_default_handler()
