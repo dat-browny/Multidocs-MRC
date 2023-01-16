@@ -142,7 +142,6 @@ class DataTrainingArguments:
         default=None, 
         metadata={'help': 'Path to the fine-tuned MRC model'}
     )
-
     train_dir: Optional[str] = field(default=None, metadata={"help": "The input training data dir contain (a text file)."})
     validation_dir: Optional[str] = field(
         default=None,
