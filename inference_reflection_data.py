@@ -1,41 +1,61 @@
+# import os
+# import sys
+import torch
+# import logging
+# import json
+# import datasets
+# import evaluate
+# import transformers
+# from tqdm import tqdm
+# from transformers import (
+#     RobertaConfig,
+#     HfArgumentParser,
+#     PreTrainedTokenizerFast,
+#     TrainingArguments,
+#     DataCollatorWithPadding,
+#     EvalPrediction,
+#     default_data_collator,
+#     set_seed,
+# )
+# from multi_document_mrc.mydatasets.phobert_datasets import (
+#     ViMRCReflection
+# )
+# from torch.utils.data.dataloader import default_collate
+# from torch.utils.data import DataLoader
+# from transformers.trainer_utils import get_last_checkpoint
+# from multi_document_mrc.models.tokenization_phobert_fast import PhobertTokenizerFast
+# from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
+# from multi_document_mrc.models_map import get_model_version_classes
+# from dataclasses import dataclass
+from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection
+# from multi_document_mrc.mydatasets.phobert_datasets import ViMRCDatasetsForPhoBERT, ViMRCDatasetsForPhoBERTNoHapReflection
+# from multi_document_mrc.trainer import ReflectionTrainer
+
+# from transformers.trainer_utils import get_last_checkpoint
+# from transformers.utils.versions import require_version
+# from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
+# from multi_document_mrc.models_map import get_model_version_classes
+
+import logging
 import os
 import sys
-import torch
-import logging
-import json
 import datasets
 import evaluate
 import transformers
-from tqdm import tqdm
+from multi_document_mrc.trainer import QuestionAnsweringTrainer
 from transformers import (
-    RobertaConfig,
+    DataCollatorWithPadding,
+    EvalPrediction,
     HfArgumentParser,
     PreTrainedTokenizerFast,
     TrainingArguments,
-    DataCollatorWithPadding,
-    EvalPrediction,
     default_data_collator,
     set_seed,
 )
-from multi_document_mrc.mydatasets.phobert_datasets import (
-    ViMRCReflection
-)
-from torch.utils.data.dataloader import default_collate
-from torch.utils.data import DataLoader
-from transformers.trainer_utils import get_last_checkpoint
-from multi_document_mrc.models.tokenization_phobert_fast import PhobertTokenizerFast
-from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
-from multi_document_mrc.models_map import get_model_version_classes
-from dataclasses import dataclass
-from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection
-from multi_document_mrc.mydatasets.phobert_datasets import ViMRCDatasetsForPhoBERT, ViMRCDatasetsForPhoBERTNoHapReflection
-from multi_document_mrc.trainer import ReflectionTrainer
-
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils.versions import require_version
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
-
 
 logger = logging.getLogger(__name__)
 
