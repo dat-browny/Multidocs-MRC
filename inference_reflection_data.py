@@ -10,8 +10,6 @@ from multi_document_mrc.mydatasets.phobert_datasets import (
 )
 from torch.utils.data.dataloader import default_collate
 from torch.utils.data import DataLoader
-from transformers.trainer_utils import get_last_checkpoint
-from multi_document_mrc.models.tokenization_phobert_fast import PhobertTokenizerFast
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
 from dataclasses import dataclass
@@ -29,8 +27,6 @@ import evaluate
 
 from multi_document_mrc.trainer import ReflectionTrainer
 from transformers import (
-    DataCollatorWithPadding,
-    EvalPrediction,
     HfArgumentParser,
     PreTrainedTokenizerFast,
     TrainingArguments,
@@ -160,6 +156,7 @@ def main():
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
         handlers=[logging.StreamHandler(sys.stdout)],
+        level = logging.INFO
     )
     model_architecture = get_model_version_classes(model_args.model_architecture)
 
@@ -177,22 +174,6 @@ def main():
     )
     logger.info(f"Training/evaluation parameters {training_args}")
 
-    # Detecting last checkpoint.
-    # last_checkpoint = None
-    # if os.path.isdir(training_args.output_dir) and training_args.do_train and not training_args.overwrite_output_dir:
-    #     last_checkpoint = get_last_checkpoint(training_args.output_dir)
-    #     if last_checkpoint is None and len(os.listdir(training_args.output_dir)) > 0:
-    #         raise ValueError(
-    #             f"Output directory ({training_args.output_dir}) already exists and is not empty. "
-    #             "Use --overwrite_output_dir to overcome."
-    #         )
-    #     elif last_checkpoint is not None and training_args.resume_from_checkpoint is None:
-    #         logger.info(
-    #             f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
-    #             "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
-    #         )
-
-    # Set seed before initializing model.
     set_seed(training_args.seed)
 
     # Load pretrained model and tokenizer
