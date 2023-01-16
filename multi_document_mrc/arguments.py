@@ -142,6 +142,16 @@ class DataTrainingArguments:
         default=None, 
         metadata={'help': 'Path to the fine-tuned MRC model'}
     )
+
+    train_dir: Optional[str] = field(default=None, metadata={"help": "The input training data dir contain (a text file)."})
+    validation_dir: Optional[str] = field(
+        default=None,
+        metadata={"help": "An optional input evaluation data dir to evaluate the perplexity on (two text files)."},
+    )
+    test_dir: Optional[str] = field(
+        default=None,
+        metadata={"help": "An optional input test data dir to evaluate the perplexity on (two text files)."},
+    )
     def __post_init__(self):
         if (
             self.dataset_name is None

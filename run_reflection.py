@@ -20,6 +20,7 @@ Fine-tuning the library models for question answering using a slightly adapted v
 import logging
 import os
 import sys
+import json
 import datasets
 import evaluate
 import transformers
@@ -146,17 +147,29 @@ def main():
         do_predict=training_args.do_predict,
         model_name_or_path=model_args.model_name_or_path
     )
+    
+    if training_args.do_train:
+        train_file = os.listdir(data_args.train_dir)
+        if len(train_file) != 1:
+            raise ValueError("Train directory must contain only one train_dataset file below type .json")
+        else:
+            train_dataset = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.train_dir, train_file[0]))))
+    
+    if training_args.do_eval:
+        eval_file = os.listdir(data_args.eval_dir)
+        if len(eval_file) == 2 and "eval_dataset.json" in eval_file and "eval_examples.json" in eval_file:
+            eval_dataset = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.eval_dir, "eval_dataset.json"))))
+            eval_examples = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.eval_dir, "eval_examples.json"))))
+        else:
+            raise ValueError("Eval directory must contain only two files below type .json")
 
-    train_dataset, train_examples = dataset_obj.get_train_dataset(
-        main_process_first=training_args.main_process_first
-    )
-    eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
-        main_process_first=training_args.main_process_first
-    )
-
-    predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
-        main_process_first=training_args.main_process_first
-    )
+    if training_args.do_predict:
+        predict_file = os.listdir(data_args.predict_dir)
+        if len(predict_file) == 2 and "predict_dataset.json" in predict_file and "predict_examples.json" in predict_file:
+            predict_dataset = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.predict_dir, "predict_dataset.json"))))
+            predict_examples = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.predict_dir, "predict_examples.json"))))
+        else:
+            raise ValueError("Eval directory must contain only two files below type .json")
 
     # Data collator 
     # We have already padded to max length if the corresponding flag is True, otherwise we need to pad in the data
