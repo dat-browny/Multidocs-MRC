@@ -365,7 +365,6 @@ class ReflectionModel(RobertaModel):
         # input head_mask has shape [num_heads] or [num_hidden_layers x num_heads]
         # and head_mask is converted to shape [num_hidden_layers x batch x num_heads x seq_length x seq_length]
         head_mask = self.get_head_mask(head_mask, self.config.num_hidden_layers)
-        print(1)
         embedding_output = self.embeddings(
             input_ids=input_ids,
             position_ids=position_ids,
