@@ -203,9 +203,9 @@ def main():
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
         trainer.save_state()
-
+    print("=============================================================================================================")
     print(type(eval_dataset))
-    
+
     # Evaluation
     if training_args.do_eval:
         logger.info("*** Evaluate ***")
