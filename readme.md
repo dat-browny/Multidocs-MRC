@@ -32,6 +32,7 @@ Thay đổi các tham số model_path, data_path, .. trong file `./run_train.sh`
 ```
 Để biết thêm về các tham số, mở terminal và chạy `python multi_document_mrc/run_train.py --help`
 
+
 ### 2.3 Đánh giá model <a name="evaluate_model"></a>
 Thay đổi các tham số model_path, data_path, .. trong file `./run_evaluate.sh`, sau đó mở terminal và chạy đoạn mã sau
 ```bash

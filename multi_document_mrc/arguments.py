@@ -38,6 +38,10 @@ class ModelArguments:
             )
         },
     )
+    reflection_path: Optional[str] = field(
+        default=None,
+        metadata={"help": "Path to model Reflection that pretrained in Classification Task"},
+    )
 
 
 @dataclass
