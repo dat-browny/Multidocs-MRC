@@ -157,8 +157,8 @@ def main():
     if training_args.do_eval:
         eval_file = os.listdir(data_args.validation_dir) 
         if len(eval_file) == 2 and "eval_dataset.json" in eval_file and "eval_examples.json" in eval_file:
-            eval_dataset = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.eval_dir, "eval_dataset.json"))))
-            eval_examples = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.eval_dir, "eval_examples.json"))))
+            eval_dataset = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.validation_dir, "eval_dataset.json"))))
+            eval_examples = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.validation_dir, "eval_examples.json"))))
         else:
             raise ValueError("Eval directory must contain only two files below type .json")
 
