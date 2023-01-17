@@ -120,6 +120,7 @@ def save_datasets(datasets, dir):
     if len(datasets) == 1:
         dataset_name = dataset_name_root + '.json'
         path = os.path.join(dir, dataset_name)
+        print(path)
         with open(path, 'w') as fp:
             json.dump(datasets[0], fp)
         logger.info(f"Saving {dataset_name_root} at {dir}")
@@ -129,6 +130,7 @@ def save_datasets(datasets, dir):
             if id == 0:
                 dataset_name = dataset_name_root + '_dataset.json'
                 path = os.path.join(dir, dataset_name_root)
+                print(path)
                 with open(path, 'w') as fp:
                     json.dump(dataset, fp)        
             else: 
