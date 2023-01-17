@@ -223,56 +223,6 @@
                 },
                 {
                     "qas": [{
-                            "question": "Sự kiện quan trọng nào đã diễn ra vào ngày 20/7/1954?",
-                            "answers": [{
-                                "answer_start": 364,
-                                "text": "bản Hiệp định đình chỉ chiến sự ở Việt Nam, Campuchia và Lào đã được ký kết thừa nhận tôn trọng độc lập, chủ quyền, của nước Việt Nam, Lào và Campuchia"
-                            }],
-                            "id": "uit_000008",
-                            "is_impossible": false
-                        },
-                        {
-                            "question": "Chức vụ mà Phạm Văn Đồng đảm nhiệm tại Hội nghị Genève về Đông Dương?",
-                            "answers": [{
-                                "answer_start": 33,
-                                "text": "Trưởng phái đoàn Chính phủ"
-                            }],
-                            "id": "uit_000009",
-                            "is_impossible": false
-                        },
-                        {
-                            "question": "Hội nghị Genève về Đông Dương có tính chất như thế nào?",
-                            "answers": [{
-                                "answer_start": 262,
-                                "text": "rất căng thẳng và phức tạp"
-                            }],
-                            "id": "uit_000010",
-                            "is_impossible": false
-                        },
-                        {
-                            "question": "Hội nghị Đông Dương về Genève có tính chất như thế nào?",
-                            "answers": [],
-                            "plausible_answers": [{
-                                "answer_start": 262,
-                                "text": "rất căng thẳng và phức tạp"
-                            }],
-                            "id": "uit_000011",
-                            "is_impossible": true
-                        },
-                        {
-                            "question": "Đoàn Chính phủ Việt Nam dự hội nghị Genève về Đông Dương vì bản Hiệp ước nào?",
-                            "answers": [{
-                                "answer_start": 364,
-                                "text": "bản Hiệp định đình chỉ chiến sự ở Việt Nam, Campuchia và Lào"
-                            }],
-                            "id": "uit_000012",
-                            "is_impossible": false
-                        }
-                    ],
-                    "context": "Năm 1954, ông được giao nhiệm vụ Trưởng phái đoàn Chính phủ dự Hội nghị Genève về Đông Dương. Những đóng góp của đoàn Việt Nam do ông đứng đầu là vô cùng quan trọng, tạo ra những đột phá đưa Hội nghị tới thành công. Trải qua 8 phiên họp toàn thể và 23 phiên họp rất căng thẳng và phức tạp, với tinh thần chủ động và cố gắng của phái đoàn Việt Nam, ngày 20/7/1954, bản Hiệp định đình chỉ chiến sự ở Việt Nam, Campuchia và Lào đã được ký kết thừa nhận tôn trọng độc lập, chủ quyền, của nước Việt Nam, Lào và Campuchia."
-                },
-                {
-                    "qas": [{
                             "question": "Người dân trên thế giới thường gọi Paris với tên khác là gì?",
                             "answers": [{
                                     "answer_start": 29,

@@ -149,6 +149,7 @@ def main():
     
     if training_args.do_train:
         train_file = os.listdir(data_args.train_dir)
+        print(train_file)
         if len(train_file) != 1:
             raise ValueError("Train directory must contain only one train_dataset file below type .json")
         else:
@@ -156,6 +157,7 @@ def main():
     
     if training_args.do_eval:
         eval_file = os.listdir(data_args.eval_dir)
+        print(eval_file)
         if len(eval_file) == 2 and "eval_dataset.json" in eval_file and "eval_examples.json" in eval_file:
             eval_dataset = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.eval_dir, "eval_dataset.json"))))
             eval_examples = datasets.Dataset.from_dict(json.load(open(os.path.join(data_args.eval_dir, "eval_examples.json"))))
