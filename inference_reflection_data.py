@@ -8,11 +8,9 @@ from transformers import (
 from multi_document_mrc.mydatasets.phobert_datasets import (
     ViMRCReflection
 )
-from torch.utils.data.dataloader import default_collate
 from torch.utils.data import DataLoader
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
-from dataclasses import dataclass
 from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection
 from multi_document_mrc.mydatasets.phobert_datasets import ViMRCDatasetsForPhoBERT, ViMRCDatasetsForPhoBERTNoHapReflection
 import os
@@ -23,14 +21,11 @@ import transformers
 import datasets
 from tqdm import tqdm
 import json
-import evaluate
 
-from multi_document_mrc.trainer import ReflectionTrainer
 from transformers import (
     HfArgumentParser,
     PreTrainedTokenizerFast,
     TrainingArguments,
-    default_data_collator,
     set_seed,
 )
 from transformers.trainer_utils import get_last_checkpoint
@@ -69,7 +64,6 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             head_features += output['head_features'].tolist()
             
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
-    # x = datasets.Dataset.from_dict(dict(examples))
 
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
                     batched=True,
@@ -130,13 +124,11 @@ def main():
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        handlers=[logging.StreamHandler(sys.stdout)],
-        level = logging.INFO
+        handlers=[logging.StreamHandler(sys.stdout)]
     )
     model_architecture = get_model_version_classes(model_args.model_architecture)
 
     log_level = training_args.get_process_log_level()
-    logger.setLevel(logging.INFO)
     datasets.utils.logging.set_verbosity(log_level)
     transformers.utils.logging.set_verbosity(log_level)
     transformers.utils.logging.enable_default_handler()

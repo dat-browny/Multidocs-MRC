@@ -867,11 +867,11 @@ class ViMRCDatasetsV1bForPhoBERT(ViMRCDatasetsForPhoBERT):
         return inputs, context_map
 
 class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
-
-    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], data_args: Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, model_name_or_path: str = None, do_predict: bool = False, is_training_reflection: bool = False, **kwargs):
+    def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], data_args: Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, reflection_path: str = None, do_predict: bool = False, is_training_reflection: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-        self.model = ReflectionModel.from_pretrained(model_name_or_path, config=config)
-        self.is_training_reflection = is_training_reflection
+        if do_eval:
+            self.model = ReflectionModel.from_pretrained(reflection_path, config=config)
+            self.is_training_reflection = is_training_reflection
     # def post_processing_function(self, examples, features, predictions, output_dir, log_level, stage="eval"):
     @staticmethod
     def postprocess_qa_predictions(

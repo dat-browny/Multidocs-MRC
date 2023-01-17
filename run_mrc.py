@@ -203,7 +203,7 @@ def main():
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
         trainer.save_state()
-
+    print(eval_dataset['input_ids'])
     # Evaluation
     if training_args.do_eval:
         logger.info("*** Evaluate ***")
