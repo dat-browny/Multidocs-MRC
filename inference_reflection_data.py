@@ -117,6 +117,7 @@ def save_datasets(datasets, dir):
     if not os.path.isdir(dir):
         os.mkdir(dir)
     dataset_name_root = dir.split("/")[-1] 
+    print(len(datasets))
     if len(datasets) == 1:
         dataset_name = dataset_name_root + '.json'
         path = os.path.join(dir, dataset_name)
@@ -261,8 +262,11 @@ def main():
                                         device=device, batch_size=32, 
                                         model_name_or_path=model_args.model_name_or_path, 
                                         max_seq_length=data_args.max_seq_length)
+
         train_path = os.path.join(training_args.output_dir, "train")
-        save_datasets((train_dataset), train_path)
+        with open(os.path.join(train_path, "train_dataset.json"), 'w') as fp:
+            json.dump(train_dataset, fp)
+            fp.close()
 
     if training_args.do_eval: 
         eval_dataset = convert_to_instance(model=model_, 
@@ -272,8 +276,14 @@ def main():
                                         device=device, batch_size=32, 
                                         model_name_or_path=model_args.model_name_or_path, 
                                         max_seq_length=data_args.max_seq_length)
+
         eval_path = os.path.join(training_args.output_dir, "eval")
-        save_datasets((eval_dataset, eval_examples.to_dict()), eval_path)
+        with open(os.path.join(eval_path, "eval_dataset.json"), 'w') as fp:
+            json.dump(eval_dataset, fp)
+            fp.close()
+        with open(os.path.join(eval_path, "eval_examples.json"), 'w') as fp:
+            json.dump(eval_examples, fp)
+            fp.close()
 
     if training_args.do_predict: 
         predict_dataset = convert_to_instance(model=model_, 
@@ -283,8 +293,14 @@ def main():
                                         device=device, batch_size=32, 
                                         model_name_or_path=model_args.model_name_or_path, 
                                         max_seq_length=data_args.max_seq_length)
+                                        
         predict_path = os.path.join(training_args.output_dir, "predict")
-        save_datasets((predict_dataset, predict_examples.to_dict()), predict_path)
+        with open(os.path.join(predict_path, "predict_dataset.json"), 'w') as fp:
+            json.dump(predict_dataset, fp)
+            fp.close()
+        with open(os.path.join(predict_path, "predict_examples.json"), 'w') as fp:
+            json.dump(predict_examples, fp)
+            fp.close()
 
 if __name__ == "__main__":
     main()
