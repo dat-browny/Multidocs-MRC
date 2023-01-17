@@ -1049,12 +1049,11 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         end_index = best_non_null_pred['end_index']
                         input_ids = torch.tensor([features[feature_index]['input_ids']], device=device)
 
-                        ans_type_ids = torch.tensor([0]*len(input_ids), device=device)
+                        ans_type_ids = torch.tensor([0]*len(input_ids[0]), device=device)
                         if no_answer_probs[feature_index] < 0.5:
                             ans_type_ids[0] = 2
                         else:
                             ans_type_ids[0] = 1
-                        print(len(ans_type_ids))
                         ans_type_ids[start_index] = 3
                         ans_type_ids[start_index+1:end_index+1] = 4
                         na_probs_ = model(input_ids=input_ids, 
