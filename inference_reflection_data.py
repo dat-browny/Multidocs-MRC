@@ -264,6 +264,8 @@ def main():
                                         max_seq_length=data_args.max_seq_length)
 
         train_path = os.path.join(training_args.output_dir, "train")
+        if not os.path.isdir(train_path):
+            os.mkdir(train_path)
         with open(os.path.join(train_path, "train_dataset.json"), 'w') as fp:
             json.dump(train_dataset, fp)
             fp.close()
@@ -278,6 +280,8 @@ def main():
                                         max_seq_length=data_args.max_seq_length)
 
         eval_path = os.path.join(training_args.output_dir, "eval")
+        if not os.path.isdir(eval_path):
+            os.mkdir(eval_path)
         with open(os.path.join(eval_path, "eval_dataset.json"), 'w') as fp:
             json.dump(eval_dataset, fp)
             fp.close()
@@ -293,8 +297,10 @@ def main():
                                         device=device, batch_size=32, 
                                         model_name_or_path=model_args.model_name_or_path, 
                                         max_seq_length=data_args.max_seq_length)
-                                        
+
         predict_path = os.path.join(training_args.output_dir, "predict")
+        if not os.path.isdir(predict_path):
+            os.mkdir(predict_path)
         with open(os.path.join(predict_path, "predict_dataset.json"), 'w') as fp:
             json.dump(predict_dataset, fp)
             fp.close()
