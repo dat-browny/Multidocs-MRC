@@ -389,18 +389,18 @@ class ReflectionModel(RobertaModel):
         )
         sequence_output = encoder_outputs[0]
         # pooled_output = self.pooler(sequence_output) if self.pooler is not None else None
-        print(2)
-        has_answer_labels = has_answer_labels.float()
+
         features = torch.cat((sequence_output[:,0], head_features), 1)
         hidden_x = self.gelu(self.linear(features)) 
 
         ans_type_probs = self.sigmoid(torch.matmul(hidden_x, self.A))
-        print(3)
+
         if has_answer_labels is not None:
+            has_answer_labels = has_answer_labels.float()
             loss = self.bce(ans_type_probs, has_answer_labels)
         else: 
             loss = None
-        print(4)
+
         if not return_dict:
             output = (ans_type_probs) + encoder_outputs[2:]
             return ((loss,) + output) if loss is not None else output
