@@ -885,8 +885,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         model: PreTrainedModel = None,
         is_training_reflection = True
     ):
-        print("==========================================================================")
-        print(type(features['input_ids']))
+
         if len(predictions) != 5:
             raise ValueError(
                 "`predictions` should be a tuple with five elements (start_logits, end_logits, has_answer_logits, score, head_features).")
@@ -1048,6 +1047,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         start_index = best_non_null_pred['start_index']
                         end_index = best_non_null_pred['end_index']
                         input_ids = features[feature_index]['input_ids']
+                        print("=======")
+                        print(type(input_ids))
                         ans_type_ids = torch.tensor([0]*len(input_ids), device=input_ids.device)
                         if no_answer_probs[feature_index] < 0.5:
                             ans_type_ids[0] = 2
