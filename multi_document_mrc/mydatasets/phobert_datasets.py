@@ -1057,8 +1057,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             ans_type_ids[0][0] = 1
                         ans_type_ids[0][start_index] = 3
                         ans_type_ids[0][start_index+1:end_index+1] = 4
-                        if input_ids.device == ans_type_ids.device == head_feature.device:
-                            print(111111111111111111111111111111111111111111111111111111111111111111111111)
+
                         na_probs_ = model(input_ids=input_ids, 
                                           ans_type_ids=ans_type_ids, 
                                           head_features=head_feature,

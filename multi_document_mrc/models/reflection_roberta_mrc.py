@@ -374,6 +374,7 @@ class ReflectionModel(RobertaModel):
             inputs_embeds=inputs_embeds,
             past_key_values_length=past_key_values_length,
         )
+        print(2)
         encoder_outputs = self.encoder(
             embedding_output,
             attention_mask=extended_attention_mask,
