@@ -1047,6 +1047,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
                         start_index = best_non_null_pred['start_index']
                         end_index = best_non_null_pred['end_index']
+                        
                         input_ids = torch.tensor([features[feature_index]['input_ids']], device=device)
 
                         ans_type_ids = torch.tensor([0]*len(input_ids[0]), device=device)
@@ -1058,7 +1059,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         ans_type_ids[start_index+1:end_index+1] = 4
                         na_probs_ = model(input_ids=input_ids, 
                                           ans_type_ids=[ans_type_ids], 
-                                          head_features=[head_feature.to(device)],
+                                          head_features=torch.tensor([head_features], device=device),
                                           return_dict=True)['ans_type_probs']
                         # Then we compare to the null prediction using the threshold.
 
