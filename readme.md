@@ -26,19 +26,65 @@ pip install -e .
 Các file dữ liệu train và test theo định dạng `Squad2.0`
 
 ### 2.2 Đào tạo model <a name="train_model_script"></a>
+#### 2.2.1. Model MRC
 Thay đổi các tham số model_path, data_path, .. trong file `./run_train.sh`, sau đó mở terminal và chạy đoạn mã sau
 ```bash
 ./run_train.sh
 ```
 Để biết thêm về các tham số, mở terminal và chạy `python multi_document_mrc/run_train.py --help`
-
+#### 2.2.2. Model Refection
+Ban đầu, huấn luyện mô hình MRC từ pretrain PhoBert base
+```bash
+python3 run_mrc.py \
+    --model_name_or_path vinai/phobert-base \
+    --model_architecture phobert-qa-mrc-block \
+    --output_dir ./phobert-base-mrc-lr5e5-bs32-e15 \
+    --train_file ./MRC_VLSP/v2_train_ViQuAD_new.json \
+    --do_train \
+    --learning_rate 0.00005 \
+    --max_seq_length 256 \
+    --doc_stride 128  \
+    --per_device_train_batch_size 16 \
+    --num_train_epochs 15 \
+    --save_total_limit 1
+```
+Tiếp theo, dùng mô hình MRC để huấn luyện mô hình Reflection, gồm hai bước: tạo data training mô hình Reflection và training mô hình Reflection.
+```bashion
+!python3 inference_reflection_data.py \
+    --model_name_or_path vinai/phobert-base \
+    --model_architecture phobert-qa-reflection-block \
+    --output_dir ./ \
+    --train_file ./Multidocs-MRC/MRC_VLSP/v1_dev_ViQuAD.json \
+    --validation_file ./Multidocs-MRC/MRC_VLSP/v1_dev_ViQuAD.json \
+    --do_train \
+    --do_eval \
+    --learning_rate 0.00005 \
+    --max_seq_length 256 \
+    --doc_stride 128  \
+```
+```bash
+!python3 run_reflection.py \
+    --model_name_or_path vinai/phobert-base \
+    --model_architecture phobert-qa-reflection-block \
+    --output_dir ./phobert-base-qa-lr5-bs16-reflection \
+    --train_dir ./train \
+    --validation_dir ./eval \
+    --do_train \
+    --do_eval \
+    --learning_rate 0.00005 \
+    --max_seq_length 256 \
+    --doc_stride 128  \
+    --per_device_train_batch_size 16 \
+    --num_train_epochs 1
+```
 
 ### 2.3 Đánh giá model <a name="evaluate_model"></a>
+#### 2.3.1 Model MRC
 Thay đổi các tham số model_path, data_path, .. trong file `./run_evaluate.sh`, sau đó mở terminal và chạy đoạn mã sau
 ```bash
 ./run_evaluate.sh
 ```
-
+#### 2.3.2 M
 
 ## 3. Sử dụng Python Package <a name="inference"></a>
 
