@@ -365,7 +365,7 @@ class ReflectionModel(RobertaModel):
         # input head_mask has shape [num_heads] or [num_hidden_layers x num_heads]
         # and head_mask is converted to shape [num_hidden_layers x batch x num_heads x seq_length x seq_length]
         head_mask = self.get_head_mask(head_mask, self.config.num_hidden_layers)
-
+        print(1)
         embedding_output = self.embeddings(
             input_ids=input_ids,
             position_ids=position_ids,
@@ -388,18 +388,18 @@ class ReflectionModel(RobertaModel):
         )
         sequence_output = encoder_outputs[0]
         # pooled_output = self.pooler(sequence_output) if self.pooler is not None else None
-
+        print(2)
         has_answer_labels = has_answer_labels.float()
         features = torch.cat((sequence_output[:,0], head_features), 1)
         hidden_x = self.gelu(self.linear(features)) 
 
         ans_type_probs = self.sigmoid(torch.matmul(hidden_x, self.A))
-
+        print(3)
         if has_answer_labels is not None:
             loss = self.bce(ans_type_probs, has_answer_labels)
         else: 
             loss = None
-        
+        print(4)
         if not return_dict:
             output = (ans_type_probs) + encoder_outputs[2:]
             return ((loss,) + output) if loss is not None else output
