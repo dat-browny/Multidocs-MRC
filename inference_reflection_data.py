@@ -112,35 +112,6 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
 
     return tokenized_examples_
-
-def save_datasets(datasets, dir):
-    if not os.path.isdir(dir):
-        os.mkdir(dir)
-    dataset_name_root = dir.split("/")[-1] 
-    print(len(datasets))
-    if len(datasets) == 1:
-        dataset_name = dataset_name_root + '.json'
-        path = os.path.join(dir, dataset_name)
-        print(path)
-        with open(path, 'w') as fp:
-            json.dump(datasets[0], fp)
-        logger.info(f"Saving {dataset_name_root} at {dir}")
-
-    else:
-        for id, dataset in enumerate(datasets):
-            if id == 0:
-                dataset_name = dataset_name_root + '_dataset.json'
-                path = os.path.join(dir, dataset_name)
-                print(path)
-                with open(path, 'w') as fp:
-                    json.dump(dataset, fp)        
-            else: 
-                dataset_name = dataset_name_root + '_examples.json'
-                path = os.path.join(dir, dataset_name)
-                with open(path, 'w') as fp:
-                    json.dump(dataset, fp)
-            print(path)
-        logger.info(f"Saving {dataset_name_root} at {dir}")
         
 def main():
     # See all possible arguments in src/transformers/training_args.py
@@ -286,7 +257,7 @@ def main():
             json.dump(eval_dataset, fp)
             fp.close()
         with open(os.path.join(eval_path, "eval_examples.json"), 'w') as fp:
-            json.dump(eval_examples, fp)
+            json.dump(eval_examples.to_dict(), fp)
             fp.close()
 
     if training_args.do_predict: 
@@ -305,7 +276,7 @@ def main():
             json.dump(predict_dataset, fp)
             fp.close()
         with open(os.path.join(predict_path, "predict_examples.json"), 'w') as fp:
-            json.dump(predict_examples, fp)
+            json.dump(predict_examples.to_dict(), fp)
             fp.close()
 
 if __name__ == "__main__":
