@@ -1054,6 +1054,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             ans_type_ids[0] = 2
                         else:
                             ans_type_ids[0] = 1
+                        print(len(ans_type_ids))
                         ans_type_ids[start_index] = 3
                         ans_type_ids[start_index+1:end_index+1] = 4
                         na_probs_ = model(input_ids=input_ids, 
