@@ -1061,8 +1061,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         print(head_feature)
                         na_probs_ = model(input_ids=input_ids, 
                                           ans_type_ids=ans_type_ids, 
-                                          head_features=head_feature, 
-                                          return_dict=True)
+                                          head_features=head_feature)
                         print(na_probs_)
                         # Then we compare to the null prediction using the threshold.
 
