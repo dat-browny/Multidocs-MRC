@@ -138,6 +138,7 @@ def save_datasets(datasets, dir):
                 path = os.path.join(dir, dataset_name)
                 with open(path, 'w') as fp:
                     json.dump(dataset, fp)
+            print(path)
         logger.info(f"Saving {dataset_name_root} at {dir}")
         
 def main():
