@@ -885,7 +885,8 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         model: PreTrainedModel = None,
         is_training_reflection = True
     ):
-
+        print("==========================================================================")
+        print(type(features['input_ids']))
         if len(predictions) != 5:
             raise ValueError(
                 "`predictions` should be a tuple with five elements (start_logits, end_logits, has_answer_logits, score, head_features).")
@@ -1098,12 +1099,12 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
         # Format the result to the format the metric expects.
 
-        # if self.data_args.version_2_with_negative:
-        formatted_predictions = [
-            {"id": k, "prediction_text": v["text"], "no_answer_probability": v["na_prob"]} for k, v in predictions.items()
-        ]
-        # else:
-        #     formatted_predictions = [{"id": k, "prediction_text": v} for k, v in predictions.items()]
+        if self.data_args.version_2_with_negative:
+            formatted_predictions = [
+                {"id": k, "prediction_text": v["text"], "no_answer_probability": v["na_prob"]} for k, v in predictions.items()
+            ]
+        else:
+            formatted_predictions = [{"id": k, "prediction_text": v} for k, v in predictions.items()]
 
         references = [{"id": ex["id"], "answers": ex[self.answer_column_name]} for ex in examples]
         return EvalPrediction(predictions=formatted_predictions, label_ids=references)
