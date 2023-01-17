@@ -869,8 +869,10 @@ class ViMRCDatasetsV1bForPhoBERT(ViMRCDatasetsForPhoBERT):
 class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
     def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], data_args: Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, reflection_path: str = None, do_predict: bool = False, is_training_reflection: bool = False, **kwargs):
         super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
+        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         if do_eval:
             self.model = ReflectionModel.from_pretrained(reflection_path, config=config)
+            self.model.to(self.device)
             self.is_training_reflection = is_training_reflection
     # def post_processing_function(self, examples, features, predictions, output_dir, log_level, stage="eval"):
     @staticmethod
