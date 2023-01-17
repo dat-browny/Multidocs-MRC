@@ -204,7 +204,7 @@ def main():
         trainer.save_metrics("train", metrics)
         trainer.save_state()
     print("=============================================================================================================")
-    print(type(eval_dataset))
+    print(type(eval_dataset['input_ids']))
 
     # Evaluation
     if training_args.do_eval:
