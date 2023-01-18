@@ -192,7 +192,6 @@ class ReflectEmbeddings(nn.Module):
         self.word_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
         self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.hidden_size)
         self.token_type_embeddings = nn.Embedding(config.type_vocab_size, config.hidden_size)
-
         self.ans_type_embeddings = nn.Embedding(5, config.hidden_size, padding_idx =0)
         # self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
         # any TensorFlow checkpoint file
@@ -255,6 +254,12 @@ class ReflectionModel(RobertaModel):
         self.embeddings = ReflectEmbeddings(config)
         self.encoder = RobertaEncoder(config)
         self.pooler = RobertaPooler(config) if add_pooling_layer else None
+        for param in self.embeddings.parameters():
+            param.requires_grad = False
+        for param in self.encoder.parameters():
+            param.requires_grad = False
+        for param in self.pooler.parameters():
+            param.requires_grad = False        
         self.linear = nn.Linear(self.concat_dim, self.config.hidden_size)
         self.gelu = nn.GELU()
         self.A = nn.parameter.Parameter(torch.rand(self.config.hidden_size, requires_grad=True))
