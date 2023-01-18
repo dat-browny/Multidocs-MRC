@@ -176,12 +176,19 @@ def main():
 
     def compute_metrics(p: EvalPrediction):
         predict_data = {}
+        predict_data['id'] = []
         predict_data['input_ids'] = []
         predict_data['head_feature'] = []
         predict_data['ans_type_ids'] = []
-
+        formated_prediction = []
         for key, value in p.predictions.items():
-            print(len(value))
+            if len(value) != 4:
+                formated_prediction.append({"id": key, "prediction_text": value["text"], "no_answer_probability": value["na_prob"]})
+            else:
+                predict_data['id'].append(key)
+                predict_data['input_ids'].append(value['input_ids'])
+                predict_data['head_feature'].append(value['head_feature'])
+                predict_data['ans_type_ids'].append(value['ans_type_ids'])
 
         na_prob = []
         predict_data = datasets.Dataset.from_dict(predict_data)
