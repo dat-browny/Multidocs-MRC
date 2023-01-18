@@ -173,45 +173,46 @@ def main():
         else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
     )
 
-    metric = evaluate.load("squad_v2")
+    metric = evaluate.load("squad_v2" if data_args.version_2_with_negative else "squad")
 
     def compute_metrics(p: EvalPrediction):
+        if data_args.version_2_with_negative:
+            predict_data = {}
+            ids = []
+            text = []
+            predict_data['input_ids'] = []
+            predict_data['head_feature'] = []
+            predict_data['ans_type_ids'] = []
+            formated_prediction = []
 
-        predict_data = {}
-        ids = []
-        text = []
-        predict_data['input_ids'] = []
-        predict_data['head_feature'] = []
-        predict_data['ans_type_ids'] = []
-        formated_prediction = []
+            for key, value in p.predictions.items():
+                if len(value) != 4:
+                    formated_prediction.append({"id": key, "prediction_text": value["text"], "no_answer_probability": value["na_prob"]})
+                else:
+                    ids.append(key)
+                    text.append(value['text'])
+                    predict_data['input_ids'].append(value['input_ids'])
+                    predict_data['head_feature'].append(value['head_feature'])
+                    predict_data['ans_type_ids'].append(value['ans_type_ids'])
 
-        for key, value in p.predictions.items():
-            if len(value) != 4:
-                formated_prediction.append({"id": key, "prediction_text": value["text"], "no_answer_probability": value["na_prob"]})
-            else:
-                ids.append(key)
-                text.append(value['text'])
-                predict_data['input_ids'].append(value['input_ids'])
-                predict_data['head_feature'].append(value['head_feature'])
-                predict_data['ans_type_ids'].append(value['ans_type_ids'])
+            na_prob = []
+            predict_data = datasets.Dataset.from_dict(predict_data)
+            batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16, shuffle=False)
+            model_reflection.to(device)
+            for batch in tqdm(batch_data):
+                batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
+                na_prob+= batch_na_probs
+            assert len(na_prob) == len(predict_data['input_ids'])
 
-        na_prob = []
-        predict_data = datasets.Dataset.from_dict(predict_data)
-        batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16, shuffle=False)
-        model_reflection.to(device)
-        for batch in tqdm(batch_data):
-            batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
-            na_prob+= batch_na_probs
-        assert len(na_prob) == len(predict_data['input_ids'])
+            for id, prob in enumerate(na_prob):
+                if prob > 0.5:
+                    formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
+                else: 
+                    formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
 
-        for id, prob in enumerate(na_prob):
-            if prob > 0.5:
-                formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
-            else: 
-                formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
-
-        return metric.compute(predictions=formated_prediction, references=p.label_ids)
-
+            return metric.compute(predictions=formated_prediction, references=p.label_ids)
+            
+        return metric.compute(predictions=p.predictions, references=p.label_ids)
     # Initialize our Trainer
     trainer = QuestionAnsweringTrainer(
         model=model,
