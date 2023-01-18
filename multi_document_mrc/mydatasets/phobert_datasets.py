@@ -1016,7 +1016,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
             # failure.
             if len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and is_training_reflection:
-                print(1)
                 all_predictions[example["id"]] = {
                             "start_positions": 0,
                             "end_positions": 0,
@@ -1024,17 +1023,13 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             "feature_index": feature_index
                         }
             elif len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and not is_training_reflection:
-                print(2)
                 all_predictions[example["id"]] = {"text": "empty", "start_logit": 0.0,
                                    "end_logit": 0.0, "score": 0.0, "na_prob": 0.0}
             else:
-                print(3)
             # Pick the best prediction. If the null answer is not possible, this is easy.
                 if not version_2_with_negative:
-                    print(3.1)
                     all_predictions[example["id"]] = predictions[0]["text"]
                 else:
-                    print(3.2)
                     # Otherwise we first need to find the best non-empty prediction.
                     for i in range(len(predictions)):
                         if predictions[i]["text"] != "":
