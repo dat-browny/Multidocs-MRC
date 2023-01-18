@@ -221,12 +221,13 @@ def main():
                 truth_answer = label_ids[id]['answers']
                 
                 score = [compute_f1(predicted_answer, answer) for answer in truth_answer]
+                print(score)
                 precision.append(max(score[:, 0]))
                 recall.append(max(score[:,1]))
 
             print(sum(precision)/len(formated_prediction))
             print(sum(recall)/len(formated_prediction))
-            
+
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
