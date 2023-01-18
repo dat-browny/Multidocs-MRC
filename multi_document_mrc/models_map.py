@@ -8,6 +8,7 @@ from multi_document_mrc.mydatasets.phobert_datasets import (
     ViMRCDatasetsForPhoBERT,
     ViMRCDatasetsV1bForPhoBERT,
     ViMRCDatasetsForPhoBERTNoHapReflection,
+    ViMRCDatasetsV1bForPhoBERT_compare,
     ViMRCReflection
 )
 from multi_document_mrc.models.roberta_mrc import (
@@ -89,6 +90,13 @@ MODELS_MAP = {
     "phobert-qa-reflection-block":VersionClassesMap(
         model_class=ReflectionModel,
         dataset_class=ViMRCReflection,
+        config_class=RobertaConfig,
+        tokenizer_class=PhobertTokenizerFast,
+        description="Phobert Question Answering model, Has a Answer Prediction Layer, modify content title concatenation"
+    ),
+    "phobert-qa-mrc-compare":  VersionClassesMap(
+        model_class=RobertaForMRCReflection,
+        dataset_class=ViMRCDatasetsV1bForPhoBERT_compare,
         config_class=RobertaConfig,
         tokenizer_class=PhobertTokenizerFast,
         description="Phobert Question Answering model, Has a Answer Prediction Layer, modify content title concatenation"
