@@ -212,7 +212,7 @@ def main():
             print(p.label_ids[:10])
             print("==============================================================")
             label_ids = p.label_ids
-            label_ids = sorted(label_ids, lambda x: x['id'])
+            label_ids = sorted(label_ids,key=lambda x: x['id'])
             print(label_ids)
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
