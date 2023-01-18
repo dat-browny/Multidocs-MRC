@@ -1111,9 +1111,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         # Format the result to the format the metric expects.
 
         if self.data_args.version_2_with_negative:
-            formatted_predictions = [
-                {"id": k, "prediction_text": v["text"], "no_answer_probability": v["na_prob"]} for k, v in predictions.items()
-            ]
+            formatted_predictions = predictions
         else:
             formatted_predictions = [{"id": k, "prediction_text": v} for k, v in predictions.items()]
 
