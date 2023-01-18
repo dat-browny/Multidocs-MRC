@@ -181,6 +181,7 @@ def main():
         predict_data['ans_type_ids'] = []
 
         for key, value in p.predictions.items():
+            print(key, value)
             predict_data['input_ids'].append(value['input_ids'])
             predict_data['head_feature'].append(value['head_feature'])
             predict_data['ans_type_ids'].append(value['ans_type_ids'])
