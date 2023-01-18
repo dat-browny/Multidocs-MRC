@@ -33,9 +33,9 @@ def compute_f1(prediction, truth):
     
     # if there are no common tokens then f1 = 0
     if len(common_tokens) == 0:
-        return 0
+        return [0, 0]
     
     prec = len(common_tokens) / len(pred_tokens)
     rec = len(common_tokens) / len(truth_tokens)
     
-    return prec, rec
+    return [prec, rec]

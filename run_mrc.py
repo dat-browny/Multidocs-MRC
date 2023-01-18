@@ -16,6 +16,7 @@
 """
 Fine-tuning the library models for question answering using a slightly adapted version of the 🤗 Trainer.
 """
+from metrics import compute_f1
 
 import logging
 import os
@@ -209,11 +210,23 @@ def main():
                     formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
                 else: 
                     formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
-            print(p.label_ids[:10])
-            print("==============================================================")
+
             label_ids = p.label_ids
             label_ids = sorted(label_ids,key=lambda x: x['id'])
             print(label_ids)
+
+            precision , recall = [], []
+            for id, sample in enumerate(formated_prediction):
+                predicted_answer = sample['prediction_text']
+                truth_answer = label_ids[id]['answers']
+                
+                score = [compute_f1(predicted_answer, answer) for answer in truth_answer]
+                precision.append(max(score[:, 0]))
+                recall.append(max(score[:,1]))
+
+            print(sum(precision)/len(formated_prediction))
+            print(sum(recall)/len(formated_prediction))
+            
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
