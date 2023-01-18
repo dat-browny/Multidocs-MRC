@@ -213,7 +213,6 @@ def main():
 
             label_ids = p.label_ids
             label_ids = sorted(label_ids,key=lambda x: x['id'])
-            print(label_ids)
 
             precision , recall = [], []
             for id, sample in enumerate(formated_prediction):
@@ -228,7 +227,7 @@ def main():
                         recall.append(0)
                 else:
                     score = [compute_f1(predicted_answer, answer) for answer in truth_answer]
-
+                    print(score)
                     precision.append(max(score[:, 0]))
                     recall.append(max(score[:,1]))
 
