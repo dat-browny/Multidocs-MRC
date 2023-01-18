@@ -211,7 +211,9 @@ def main():
                     formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
 
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
-            
+
+        print(p.predictions)
+        print(p.label_ids)
         return metric.compute(predictions=p.predictions, references=p.label_ids)
     # Initialize our Trainer
     trainer = QuestionAnsweringTrainer(
