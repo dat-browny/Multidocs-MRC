@@ -218,9 +218,10 @@ def main():
             for id, sample in enumerate(formated_prediction):
                 predicted_answer = sample['prediction_text']
                 truth_answer = label_ids[id]['answers']
-                
-                score = [compute_f1(predicted_answer, answer) for answer in truth_answer]
+                print(truth_answer)
+                score = [compute_f1(predicted_answer, answer['text']) for answer in truth_answer]
                 print(score)
+                print(score[:,0])
                 precision.append(max(score[:, 0]))
                 recall.append(max(score[:,1]))
 
