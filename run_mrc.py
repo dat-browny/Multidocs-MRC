@@ -23,6 +23,7 @@ import sys
 import datasets
 import evaluate
 import transformers
+import torch
 from multi_document_mrc.models.reflection_roberta_mrc import ReflectionModel
 from multi_document_mrc.trainer import QuestionAnsweringTrainer
 from transformers import (
@@ -34,13 +35,13 @@ from transformers import (
     default_data_collator,
     set_seed,
 )
+from tqdm import tqdm
 from torch.utils.data import DataLoader
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils.versions import require_version
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
 
-import torch
 require_version("datasets>=1.8.0", "To fix: pip install -r examples/pytorch/question-answering/requirements.txt")
 
 logger = logging.getLogger(__name__)
@@ -175,6 +176,7 @@ def main():
     metric = evaluate.load("squad_v2")
 
     def compute_metrics(p: EvalPrediction):
+
         predict_data = {}
         ids = []
         text = []
@@ -182,6 +184,7 @@ def main():
         predict_data['head_feature'] = []
         predict_data['ans_type_ids'] = []
         formated_prediction = []
+
         for key, value in p.predictions.items():
             if len(value) != 4:
                 formated_prediction.append({"id": key, "prediction_text": value["text"], "no_answer_probability": value["na_prob"]})
@@ -196,7 +199,7 @@ def main():
         predict_data = datasets.Dataset.from_dict(predict_data)
         batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16, shuffle=False)
         model_reflection.to(device)
-        for batch in batch_data:
+        for batch in tqdm(batch_data):
             batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
             na_prob+= batch_na_probs
         assert len(na_prob) == len(predict_data['input_ids'])
@@ -207,7 +210,7 @@ def main():
             else: 
                 formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
 
-        return metric.compute(predictions=p.predictions, references=p.label_ids)
+        return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
     # Initialize our Trainer
     trainer = QuestionAnsweringTrainer(
