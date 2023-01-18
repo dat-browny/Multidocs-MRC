@@ -219,9 +219,9 @@ def main():
                 predicted_answer = sample['prediction_text']
                 truth_answer = label_ids[id]['answers']
                 print(truth_answer)
-                score = [compute_f1(predicted_answer, answer['text']) for answer in truth_answer]
-                print(score)
-                print(score[:,0])
+                print(type(truth_answer))
+                score = [compute_f1(predicted_answer, answer['text']) if answer['text']!=[] else compute_f1(predicted_answer, '') for answer in truth_answer]
+
                 precision.append(max(score[:, 0]))
                 recall.append(max(score[:,1]))
 
