@@ -214,14 +214,20 @@ def main():
             label_ids = p.label_ids
             label_ids = sorted(label_ids,key=lambda x: x['id'])
             print(label_ids)
-            
+
             precision , recall = [], []
             for id, sample in enumerate(formated_prediction):
                 predicted_answer = sample['prediction_text']
-                truth_answer = label_ids[id]['answers']
-                print(truth_answer)
-                print(type(truth_answer))
-                score = [compute_f1(predicted_answer, answer['text']) if answer['text']!=[] else compute_f1(predicted_answer, '') for answer in truth_answer]
+                truth_answer = label_ids[id]['answers']['text']
+                if len(truth_answer) == 0:
+                    if predicted_answer == '':
+                        precision.append(1)
+                        recall.append(1)
+                    else:
+                        precision.append(0)
+                        recall.append(0)
+                else:
+                    score = [compute_f1(predicted_answer, answer) for answer in truth_answer]
 
                 precision.append(max(score[:, 0]))
                 recall.append(max(score[:,1]))
