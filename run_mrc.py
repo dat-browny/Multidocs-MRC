@@ -20,7 +20,6 @@ Fine-tuning the library models for question answering using a slightly adapted v
 import logging
 import os
 import sys
-import torch
 import datasets
 import evaluate
 import transformers
@@ -41,7 +40,7 @@ from transformers.utils.versions import require_version
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
 
-
+import torch
 require_version("datasets>=1.8.0", "To fix: pip install -r examples/pytorch/question-answering/requirements.txt")
 
 logger = logging.getLogger(__name__)
@@ -190,7 +189,7 @@ def main():
         predict_data = datasets.Dataset.from_dict(predict_data)
         batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16)
         for batch in batch_data:
-            
+
             print(model_reflection(input_ids=batch['input_ids'].to(device),  head_feature=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'])
         
 
