@@ -1050,30 +1050,32 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         start_index = best_non_null_pred['start_index']
                         end_index = best_non_null_pred['end_index']
 
-                        input_ids = torch.tensor([features[feature_index]['input_ids']], device=device)
-                        head_feature=torch.tensor([head_feature], device=device)
-                        ans_type_ids = torch.tensor([[0]*len(input_ids[0])], device=device)
+                        input_ids = features[feature_index]['input_ids']
+
+                        ans_type_ids = torch.tensor([0]*len(input_ids), device=device)
                         if no_answer_probs[feature_index] < 0.5:
-                            ans_type_ids[0][0] = 2
+                            ans_type_ids[0] = 2
                         else:
-                            ans_type_ids[0][0] = 1
-                        ans_type_ids[0][start_index] = 3
-                        ans_type_ids[0][start_index+1:end_index+1] = 4
+                            ans_type_ids[0] = 1
+                        ans_type_ids[start_index] = 3
+                        ans_type_ids[start_index+1:end_index+1] = 4
 
-                        na_probs_ = model(input_ids=input_ids, 
-                                          ans_type_ids=ans_type_ids, 
-                                          head_features=head_feature,
-                                          return_dict=True)['ans_type_probs']
+                        # na_probs_ = model(input_ids=input_ids, 
+                        #                   ans_type_ids=ans_type_ids, 
+                        #                   head_features=head_feature,
+                        #                   return_dict=True)['ans_type_probs']
 
-                        # Then we compare to the null prediction using the threshold.
+                        # # Then we compare to the null prediction using the threshold.
 
-                        if na_probs_ > 0.5:
-                            all_predictions[example["id"]] = {"text": "", "na_prob": 1.0}
-                        else:
-                            all_predictions[example["id"]] = {
-                                "text": best_non_null_pred["text"],
-                                "na_prob": na_probs_
-                            }
+                        # if na_probs_ > 0.5:
+                        #     all_predictions[example["id"]] = {"text": "", "na_prob": 1.0}
+                        # else:
+                        all_predictions[example["id"]] = {
+                            "text": best_non_null_pred["text"],
+                            "input_ids": input_ids,
+                            "head_feature": head_feature.tolist(),
+                            "ans_type_ids": ans_type_ids.tolist()
+                        }
 
             # Make `predictions` JSON-serializable by casting np.float back to float.
             all_nbest_json[example["id"]] = [

@@ -20,9 +20,11 @@ Fine-tuning the library models for question answering using a slightly adapted v
 import logging
 import os
 import sys
+import torch
 import datasets
 import evaluate
 import transformers
+from multi_document_mrc.models.reflection_roberta_mrc import ReflectionModel
 from multi_document_mrc.trainer import QuestionAnsweringTrainer
 from transformers import (
     DataCollatorWithPadding,
@@ -33,6 +35,7 @@ from transformers import (
     default_data_collator,
     set_seed,
 )
+from torch.utils.data import DataLoader
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils.versions import require_version
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
@@ -103,6 +106,8 @@ def main():
     # Distributed training:
     # The .from_pretrained methods guarantee that only one local process can concurrently
     # download model & vocab.
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
     config = model_architecture.config_class.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
@@ -127,7 +132,9 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    
+
+    model_reflection = ReflectionModel.from_pretrained(model_args.reflection_path, config=config)
+
     # Tokenizer check: this script requires a fast tokenizer.
     if not isinstance(tokenizer, PreTrainedTokenizerFast):
         raise ValueError(
@@ -169,6 +176,21 @@ def main():
     metric = evaluate.load("squad_v2")
 
     def compute_metrics(p: EvalPrediction):
+        predict_data = {}
+        predict_data['input_ids'] = []
+        predict_data['head_feature'] = []
+        predict_data['ans_type_ids'] = []
+
+        for key, value in p.predictions.item():
+            predict_data['input_ids'].append(value['input_ids'])
+            predict_data['head_feature'].append(value['head_feature'])
+            predict_data['ans_type_ids'].append(value['ans_type_ids'])
+
+        na_prob = []
+        predict_data = datasets.Dataset.from_dict(predict_data)
+        batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16)
+        for batch in batch_data:
+            print(model_reflection(input_ids=batch['input_ids'].to(device),  head_feature=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'])
         return metric.compute(predictions=p.predictions, references=p.label_ids)
 
     # Initialize our Trainer
