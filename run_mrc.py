@@ -209,7 +209,11 @@ def main():
                     formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
                 else: 
                     formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
-            print(p.label_ids)
+            print(p.label_ids[:10])
+            print("==============================================================")
+            label_ids = p.label_ids
+            label_ids = sorted(label_ids, lambda x: x['id'])
+            print(label_ids)
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
