@@ -176,7 +176,7 @@ def main():
 
     def compute_metrics(p: EvalPrediction):
         predict_data = {}
-        predict_data['id'] = []
+        id = []
         predict_data['input_ids'] = []
         predict_data['head_feature'] = []
         predict_data['ans_type_ids'] = []
@@ -185,16 +185,16 @@ def main():
             if len(value) != 4:
                 formated_prediction.append({"id": key, "prediction_text": value["text"], "no_answer_probability": value["na_prob"]})
             else:
-                predict_data['id'].append(key)
+                id.append(key)
                 predict_data['input_ids'].append(value['input_ids'])
                 predict_data['head_feature'].append(value['head_feature'])
                 predict_data['ans_type_ids'].append(value['ans_type_ids'])
-        print(predict_data)
+
         na_prob = []
         predict_data = datasets.Dataset.from_dict(predict_data)
         batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16)
         for batch in batch_data:
-            
+
             print(model_reflection(input_ids=batch['input_ids'].to(device),  head_feature=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'])
         
 
