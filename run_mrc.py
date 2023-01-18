@@ -213,7 +213,8 @@ def main():
 
             label_ids = p.label_ids
             label_ids = sorted(label_ids,key=lambda x: x['id'])
-
+            print(label_ids)
+            
             precision , recall = [], []
             for id, sample in enumerate(formated_prediction):
                 predicted_answer = sample['prediction_text']
