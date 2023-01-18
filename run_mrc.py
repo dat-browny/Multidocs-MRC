@@ -210,7 +210,7 @@ def main():
                 else: 
                     formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
 
-            print(p.predictions)
+            print(formated_prediction)
             print("==============================================")
             print(p.label_ids)
 
