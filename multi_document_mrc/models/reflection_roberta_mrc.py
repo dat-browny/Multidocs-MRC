@@ -131,13 +131,13 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
             total_loss = None
         
         def normalize(batch_tensor):
-            batch_tensor -= batch_tensor.min(1, keepdim=True)[0]
-            batch_tensor /= batch_tensor.max(1, keepdim=True)[0]
-            batch_tensor = torch.sqrt(batch_tensor)
-            means = batch_tensor.mean(dim=1, keepdim=True)
-            stds = batch_tensor.std(dim=1, keepdim=True)
-            normalized_data = (batch_tensor - means) / stds
-            return normalized_data
+            # batch_tensor -= batch_tensor.min(1, keepdim=True)[0]
+            # batch_tensor /= batch_tensor.max(1, keepdim=True)[0]
+            # batch_tensor = torch.sqrt(batch_tensor)
+            # means = batch_tensor.mean(dim=1, keepdim=True)
+            # stds = batch_tensor.std(dim=1, keepdim=True)
+            # normalized_data = (batch_tensor - means) / stds
+            return batch_tensor
 
         ans_type_predicted = [torch.argmax(prob) for prob in has_answer_probs]
         ans_type = torch.tensor([[1,0] if type==0 else [0,1] for type in ans_type_predicted], device=input_ids.device)
@@ -148,9 +148,6 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
         end_logits_top = normalize(end_logits.sort(descending=True)[0][:,:5])
         start_probs_top = normalize(start_probs.sort(descending=True)[0][:,:5])
         end_probs_top = normalize(end_probs.sort(descending=True)[0][:,:5])
-
-        head = (start_logits.sort(descending=True)[0][:,:5], end_logits.sort(descending=True)[0][:,:5], start_probs.sort(descending=True)[0][:,:5], end_probs.sort(descending=True)[0][:,:5])
-        head_top = (start_logits_top, end_logits_top, start_probs_top, end_probs_top)
 
         head_features = torch.cat((score, ans_type, ans_type_probs, ans_type_prob, start_logits_top, end_logits_top, start_probs_top, end_probs_top), 1)
 
