@@ -227,9 +227,11 @@ def main():
                         recall.append(0)
                 else:
                     score = [compute_f1(predicted_answer, answer) for answer in truth_answer]
-                    print(score)
-                    precision.append(max(score[:][0]))
-                    recall.append(max(score[:][1]))
+                    try:
+                        precision.append(max(score[:][0]))
+                        recall.append(max(score[:][1]))
+                    except: 
+                        print(predict_data,  truth_answer)
 
             print(sum(precision)/len(formated_prediction))
             print(sum(recall)/len(formated_prediction))
