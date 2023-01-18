@@ -195,9 +195,10 @@ def main():
         batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16)
         model_reflection.to(device)
         for batch in batch_data:
-
-            print(model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'])
+            batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
+            na_prob+= batch_na_probs
         
+        print(len(na_prob))
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
 
