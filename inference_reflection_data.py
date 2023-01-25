@@ -79,6 +79,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     end_positions = [value['end_positions'] for key, value in instance_training.items()]
     head_features = [value['head_features'] for key, value in instance_training.items()]
     feature_index = [value['feature_index'] for key, value in instance_training.items()]
+    na_probs = [value['na_probs'] for key, value in instance_training.items()]
 
     tokenized_examples_ = {}
     tokenized_examples_['input_ids'] = []
@@ -95,7 +96,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
         start_position = start_positions[id]
         end_position = end_positions[id]
         ans_type_id = [0]* max_seq_length
-        if tokenized_examples_['has_answer_labels'][-1] == 1 and start_position<end_position:
+        if na_probs[id] > 0.5 and start_position<end_position:
             ans_type_id[0] = 2
         else:
             ans_type_id[0] = 1
