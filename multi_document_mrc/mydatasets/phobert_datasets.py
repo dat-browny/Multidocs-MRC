@@ -1021,7 +1021,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             "end_positions": 0,
                             "head_features": head_feature,
                             "feature_index": feature_index,
-                            "has_ans_probs": na_prob
+                            "na_probs": na_prob
                         }
             elif len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and not is_training_reflection:
                 all_predictions[example["id"]] = {"text": "empty", "start_logit": 0.0,
@@ -1045,7 +1045,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             "end_positions": best_non_null_pred['end_index'],
                             "head_features": head_feature,
                             "feature_index": feature_index,
-                            "has_ans_probs": na_prob
+                            "na_probs": na_prob
                         }
                     else:
                         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
