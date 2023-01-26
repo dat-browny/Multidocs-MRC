@@ -230,8 +230,10 @@ def main():
                     try:
                         precision.append(max(score[:][0]))
                         recall.append(max(score[:][1]))
-                    except: 
-                        print(predicted_answer,  truth_answer)
+                    except:
+                        print("================================") 
+                        print(predicted_answer)
+                        print(truth_answer)
 
             print(sum(precision)/len(formated_prediction))
             print(sum(recall)/len(formated_prediction))
