@@ -216,25 +216,25 @@ def main():
 
             formated_prediction = sorted(formated_prediction, key=lambda x: x['id'])
             # remove if run actually
-            precision , recall = [], []
-            wrong = []
-            for id, sample in enumerate(formated_prediction):
-                predicted_answer = sample['prediction_text']
-                truth_answer = label_ids[id]['answers']['text']
-                if len(truth_answer) == 0:
-                    if predicted_answer == "":
-                        precision.append(1)
-                        recall.append(1)
-                    else:
-                        precision.append(0)
-                        recall.append(0)
-                else:
-                    score = [compute_f1(predicted_answer, answer) for answer in truth_answer]
-                    try:
-                        precision.append(max(score[:][0]))
-                        recall.append(max(score[:][1]))
-                    except:
-                        wrong.append([predicted_answer, truth_answer])
+            # precision , recall = [], []
+            # wrong = []
+            # for id, sample in enumerate(formated_prediction):
+            #     predicted_answer = sample['prediction_text']
+            #     truth_answer = label_ids[id]['answers']['text']
+            #     if len(truth_answer) == 0:
+            #         if predicted_answer == "":
+            #             precision.append(1)
+            #             recall.append(1)
+            #         else:
+            #             precision.append(0)
+            #             recall.append(0)
+            #     else:
+            #         score = [compute_f1(predicted_answer, answer) for answer in truth_answer]
+            #         try:
+            #             precision.append(max(score[:][0]))
+            #             recall.append(max(score[:][1]))
+            #         except:
+            #             wrong.append([predicted_answer, truth_answer])
 
             
             # print(precision)
@@ -242,8 +242,8 @@ def main():
             # print(wrong)
             # print(sum(precision)/len(formated_prediction))
             # print(sum(recall)/len(formated_prediction))
-            # print(label_ids[20:])
-            # print(formated_prediction[20:])
+            print(label_ids[:100])
+            print(formated_prediction[:100])
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
