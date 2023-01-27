@@ -242,8 +242,11 @@ def main():
             # print(wrong)
             # print(sum(precision)/len(formated_prediction))
             # print(sum(recall)/len(formated_prediction))
-            print(label_ids[0])
-            print(formated_prediction[1]['id'])
+            assert len(label_ids) == len(formated_prediction)
+            for i in range(len(label_ids)):
+                if label_ids[i]['id'] != formated_prediction[i]['id']:
+                    print(1)
+
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
