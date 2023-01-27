@@ -209,7 +209,7 @@ def main():
                 if prob > 0.5:
                     formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
                 else: 
-                    formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
+                    formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
 
             label_ids = p.label_ids
             label_ids = sorted(label_ids,key=lambda x: x['id'])
