@@ -242,8 +242,8 @@ def main():
             # print(wrong)
             # print(sum(precision)/len(formated_prediction))
             # print(sum(recall)/len(formated_prediction))
-            print(label_ids[:100])
-            print(formated_prediction[:100])
+            print(label_ids[:]['id'])
+            print(formated_prediction[:]['id'])
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
