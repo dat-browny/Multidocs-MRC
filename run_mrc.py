@@ -202,7 +202,7 @@ def main():
             model_reflection.to(device)
             for batch in tqdm(batch_data):
                 batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
-                na_prob+= batch_na_probs
+                na_prob += batch_na_probs
             assert len(na_prob) == len(predict_data['input_ids'])
 
             for id, prob in enumerate(na_prob):
@@ -213,6 +213,8 @@ def main():
 
             label_ids = p.label_ids
             label_ids = sorted(label_ids,key=lambda x: x['id'])
+
+            formated_prediction = sorted(formated_prediction, key=lambda x: x['id'])
             # remove if run actually
             precision , recall = [], []
             wrong = []
@@ -240,8 +242,8 @@ def main():
             # print(wrong)
             # print(sum(precision)/len(formated_prediction))
             # print(sum(recall)/len(formated_prediction))
-            print(label_ids[:20])
-            print(formated_prediction[:20])
+            print(label_ids[20:])
+            print(formated_prediction[20:])
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
