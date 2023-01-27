@@ -215,11 +215,12 @@ def main():
             label_ids = sorted(label_ids,key=lambda x: x['id'])
             # remove if run actually
             precision , recall = [], []
+            wrong = []
             for id, sample in enumerate(formated_prediction):
                 predicted_answer = sample['prediction_text']
                 truth_answer = label_ids[id]['answers']['text']
                 if len(truth_answer) == 0:
-                    if predicted_answer == '':
+                    if predicted_answer == "":
                         precision.append(1)
                         recall.append(1)
                     else:
@@ -231,10 +232,10 @@ def main():
                         precision.append(max(score[:][0]))
                         recall.append(max(score[:][1]))
                     except:
-                        print("================================") 
-                        print(predicted_answer)
-                        print(truth_answer)
-
+                        wrong.append([predicted_answer, truth_answer])
+            print(precision)
+            print(recall)
+            print(wrong)
             print(sum(precision)/len(formated_prediction))
             print(sum(recall)/len(formated_prediction))
 
