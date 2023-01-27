@@ -211,8 +211,7 @@ def main():
                 else: 
                     formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
 
-            label_ids = p.label_ids
-            label_ids = sorted(label_ids,key=lambda x: x['id'])
+            p.label_ids = sorted(p.label_ids,key=lambda x: x['id'])
 
             formated_prediction = sorted(formated_prediction, key=lambda x: x['id'])
             # remove if run actually
@@ -242,11 +241,8 @@ def main():
             # print(wrong)
             # print(sum(precision)/len(formated_prediction))
             # print(sum(recall)/len(formated_prediction))
-            assert len(label_ids) == len(formated_prediction)
-            for i in range(len(label_ids)):
-                if label_ids[i]['id'] != formated_prediction[i]['id']:
-                    print(1)
-
+            print(formated_prediction[:10])
+            print(p.label_ids[:10])
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
