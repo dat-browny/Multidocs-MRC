@@ -233,12 +233,15 @@ def main():
                         recall.append(max(score[:][1]))
                     except:
                         wrong.append([predicted_answer, truth_answer])
-            print(precision)
-            print(recall)
-            print(wrong)
-            print(sum(precision)/len(formated_prediction))
-            print(sum(recall)/len(formated_prediction))
 
+            
+            # print(precision)
+            # print(recall)
+            # print(wrong)
+            # print(sum(precision)/len(formated_prediction))
+            # print(sum(recall)/len(formated_prediction))
+            print(label_ids[:20])
+            print(formated_prediction[:20])
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
