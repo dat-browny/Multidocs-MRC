@@ -16,7 +16,7 @@
 """
 Fine-tuning the library models for question answering using a slightly adapted version of the 🤗 Trainer.
 """
-
+from sklearn.metrics import classification_report
 import logging
 import os
 import sys
@@ -182,7 +182,8 @@ def main():
     metric = evaluate.load("f1")
 
     def compute_metrics(p: EvalPrediction):
-        return metric.compute(predictions=p.predictions, references=p.label_ids)
+        return classification_report(p.label_ids, p.predictions)
+        # return metric.compute(predictions=p.predictions, references=p.label_ids)
 
 
     # Initialize our Trainer

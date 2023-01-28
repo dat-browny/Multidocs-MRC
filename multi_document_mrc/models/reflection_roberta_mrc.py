@@ -131,12 +131,12 @@ class RobertaForMRCReflection(RobertaPreTrainedModel):
             total_loss = None
         
         def normalize(batch_tensor):
-            # batch_tensor -= batch_tensor.min(1, keepdim=True)[0]
-            # batch_tensor /= batch_tensor.max(1, keepdim=True)[0]
-            # batch_tensor = torch.sqrt(batch_tensor)
-            # means = batch_tensor.mean(dim=1, keepdim=True)
-            # stds = batch_tensor.std(dim=1, keepdim=True)
-            # normalized_data = (batch_tensor - means) / stds
+            batch_tensor -= batch_tensor.min(1, keepdim=True)[0]
+            batch_tensor /= batch_tensor.max(1, keepdim=True)[0]
+            batch_tensor = torch.sqrt(batch_tensor)
+            means = batch_tensor.mean(dim=1, keepdim=True)
+            stds = batch_tensor.std(dim=1, keepdim=True)
+            normalized_data = (batch_tensor - means) / stds
             return batch_tensor
 
         ans_type_predicted = [torch.argmax(prob) for prob in has_answer_probs]

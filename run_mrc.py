@@ -165,9 +165,6 @@ def main():
         main_process_first=training_args.main_process_first
     )
 
-    print("=============")
-    print(eval_dataset)
-
     # Data collator 
     # We have already padded to max length if the corresponding flag is True, otherwise we need to pad in the data
     # collator.
