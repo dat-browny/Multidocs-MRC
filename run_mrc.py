@@ -206,7 +206,7 @@ def main():
             assert len(na_prob) == len(predict_data['input_ids'])
 
             for id, prob in enumerate(na_prob):
-                if prob > 0.5:
+                if prob < 0.5:
                     formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
                 else: 
                     formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
