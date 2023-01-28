@@ -182,7 +182,10 @@ def main():
     metric = evaluate.load("f1")
 
     def compute_metrics(p: EvalPrediction):
-        return classification_report(p.label_ids, p.predictions)
+        print(p.label_ids)
+        print(p.predictions)
+        target = ['class 0', "class 1"]
+        return classification_report(p.label_ids, p.predictions, labels=[0,1])
         # return metric.compute(predictions=p.predictions, references=p.label_ids)
 
 
