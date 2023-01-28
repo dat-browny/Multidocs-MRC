@@ -165,6 +165,9 @@ def main():
         main_process_first=training_args.main_process_first
     )
 
+    print("=============")
+    print(eval_dataset)
+
     # Data collator 
     # We have already padded to max length if the corresponding flag is True, otherwise we need to pad in the data
     # collator.
@@ -177,6 +180,7 @@ def main():
     metric = evaluate.load("squad_v2" if data_args.version_2_with_negative else "squad")
 
     def compute_metrics(p: EvalPrediction):
+
         if data_args.version_2_with_negative:
             predict_data = {}
             ids = []
@@ -206,7 +210,7 @@ def main():
             assert len(na_prob) == len(predict_data['input_ids'])
 
             for id, prob in enumerate(na_prob):
-                if prob < 0.5:
+                if prob > 0.5:
                     formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
                 else: 
                     formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
@@ -214,6 +218,17 @@ def main():
             p.label_ids = sorted(p.label_ids,key=lambda x: x['id'])
 
             formated_prediction = sorted(formated_prediction, key=lambda x: x['id'])
+
+
+
+
+
+
+
+
+
+
+
             # remove if run actually
             # precision , recall = [], []
             # wrong = []
@@ -241,8 +256,8 @@ def main():
             # print(wrong)
             # print(sum(precision)/len(formated_prediction))
             # print(sum(recall)/len(formated_prediction))
-            print(formated_prediction[:10])
-            print(p.label_ids[:10])
+            # print(formated_prediction[:10])
+            # print(p.label_ids[:10])
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
