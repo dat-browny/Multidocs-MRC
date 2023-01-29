@@ -183,8 +183,8 @@ def main():
 
     def compute_metrics(p: EvalPrediction):
         prediction = [1 if predict > 0.5 else 0 for predict in p.predictions]
-        return classification_report(p.label_ids, prediction, labels=[0,1])
-        # return metric.compute(predictions=p.predictions, references=p.label_ids)
+        print(classification_report(p.label_ids, prediction, labels=[0,1]))
+        return metric.compute(predictions=p.predictions, references=p.label_ids)
 
 
     # Initialize our Trainer
