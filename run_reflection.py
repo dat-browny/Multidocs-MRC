@@ -184,6 +184,7 @@ def main():
     def compute_metrics(p: EvalPrediction):
         prediction = [1 if predict > 0.5 else 0 for predict in p.predictions]
         print(classification_report(p.label_ids, prediction, labels=[0,1]))
+        print(p.label_ids.count(0))
         return metric.compute(predictions=p.predictions, references=p.label_ids)
 
 
