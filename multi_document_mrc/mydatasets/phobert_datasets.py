@@ -1055,7 +1055,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         input_ids = features[feature_index]['input_ids']
 
                         ans_type_ids = torch.tensor([0]*len(input_ids), device=device)
-                        if no_answer_probs[feature_index] < 0.5:
+                        if no_answer_probs[feature_index] > 0.5:
                             ans_type_ids[0] = 2
                         else:
                             ans_type_ids[0] = 1
