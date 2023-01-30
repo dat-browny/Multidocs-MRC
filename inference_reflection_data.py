@@ -85,13 +85,13 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
     tokenized_examples_['input_ids'] = []
     tokenized_examples_['ans_type_ids'] = []
     tokenized_examples_['has_answer_labels'] = []
-    tokenized_examples_['attention_mask'] = []
+    # tokenized_examples_['attention_mask'] = []
     tokenized_examples_['head_features'] = []
 
     for id, feature_slice in tqdm(enumerate(feature_index)):
         tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice].tolist())
         tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice].tolist())
-        tokenized_examples_['attention_mask'].append(tokenized_data_dict['attention_mask'][feature_slice].tolist())
+        # tokenized_examples_['attention_mask'].append(tokenized_data_dict['attention_mask'][feature_slice].tolist())
         tokenized_examples_['head_features'].append(head_features[id].tolist())
         start_position = start_positions[id]
         end_position = end_positions[id]
