@@ -1024,8 +1024,12 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             "na_probs": na_prob
                         }
             elif len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and not is_training_reflection:
-                all_predictions[example["id"]] = {"text": "empty", "start_logit": 0.0,
-                                   "end_logit": 0.0, "score": 0.0, "na_prob": 0.0}
+                all_predictions[example["id"]] = {"text": "", 
+                            "start_positions": 0,
+                            "end_positions": 0,
+                            "head_features": head_feature,
+                            "feature_index": feature_index,
+                            "na_probs": na_prob}
             else:
             # Pick the best prediction. If the null answer is not possible, this is easy.
                 if not version_2_with_negative:
@@ -1051,16 +1055,14 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
                         start_index = best_non_null_pred['start_index']
                         end_index = best_non_null_pred['end_index']
-
                         input_ids = features[feature_index]['input_ids']
-
                         ans_type_ids = torch.tensor([0]*len(input_ids), device=device)
-                        if no_answer_probs[feature_index] > 0.5:
+                        if na_prob > 0.5:
                             ans_type_ids[0] = 2
+                            ans_type_ids[start_index] = 3
+                            ans_type_ids[start_index+1:end_index+1] = 4
                         else:
                             ans_type_ids[0] = 1
-                        ans_type_ids[start_index] = 3
-                        ans_type_ids[start_index+1:end_index+1] = 4
 
                         all_predictions[example["id"]] = {
                             "text": best_non_null_pred["text"],
