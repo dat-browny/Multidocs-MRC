@@ -218,6 +218,8 @@ def main():
 
             formated_prediction = sorted(formated_prediction, key=lambda x: x['id'])
 
+            labels = [1 if prob > 0.5 else 0 for prob in na_prob]
+            
             # remove if run actually
             # precision , recall = [], []
             # wrong = []
@@ -247,6 +249,8 @@ def main():
             # print(sum(recall)/len(formated_prediction))
             # print(formated_prediction[:10])
             # print(p.label_ids[:10])
+            print(p.label_ids[:100])
+
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
