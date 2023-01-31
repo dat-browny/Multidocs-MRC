@@ -179,7 +179,7 @@ def main():
     metric = evaluate.load("squad_v2" if data_args.version_2_with_negative else "squad")
 
     def compute_metrics(p: EvalPrediction):
-        with open(TrainingArguments.output_dir + 'prediction', 'w') as f:
+        with open(training_args.output_dir + 'prediction', 'w') as f:
             json.dump(p.predictions, f)
         if data_args.version_2_with_negative:
             predict_data = {}
@@ -217,16 +217,6 @@ def main():
             p.label_ids = sorted(p.label_ids,key=lambda x: x['id'])
 
             formated_prediction = sorted(formated_prediction, key=lambda x: x['id'])
-
-
-
-
-
-
-
-
-
-
 
             # remove if run actually
             # precision , recall = [], []
