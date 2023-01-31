@@ -64,7 +64,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             head_features += output['head_features'].tolist()
             
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
-    with open('~/prediction_inference.json', 'w') as fp:
+    with open('prediction_inference.json', 'w') as fp:
         json.dumps(predictions, fp)    
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
                     batched=True,

@@ -67,7 +67,7 @@ class QuestionAnsweringTrainer(Trainer):
 
 
 
-        with open('~/prediction_evaluate.json', 'w') as fp:
+        with open('prediction_evaluate.json', 'w') as fp:
             json.dumps(output.predictions, fp) 
 
 
