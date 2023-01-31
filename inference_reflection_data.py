@@ -63,9 +63,11 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             score += output['score'].tolist()
             head_features += output['head_features'].tolist()
     predictions = {'start_logits': start_logits, 'end_logits': end_logits, 'has_answer_probs': has_answer_probs, 'score': score, 'head_features': head_features}        
-
-    for key, value in predictions:
-        print(type(value))
+    print(type(start_logits))
+    print(type(end_logits))
+    print(type(has_answer_probs))
+    print(type(score))
+    print(type(head_features))
     with open('prediction_inference.json', 'w') as fp:
         json.dump(predictions, fp)
 
