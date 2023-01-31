@@ -68,7 +68,7 @@ class QuestionAnsweringTrainer(Trainer):
 
 
         with open('prediction_evaluate.json', 'w') as fp:
-            json.dumps(output.predictions, fp) 
+            json.dump(output.predictions, fp) 
 
 
 
