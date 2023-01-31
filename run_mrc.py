@@ -192,15 +192,15 @@ def main():
             formated_prediction = []
 
             for key, value in p.predictions.items():
-                if len(value) != 4:
-                    print(1)
-                    formated_prediction.append({"id": key, "prediction_text": value["text"], "no_answer_probability": value["na_prob"]})
-                else:
-                    ids.append(key)
-                    text.append(value['text'])
-                    predict_data['input_ids'].append(value['input_ids'])
-                    predict_data['head_feature'].append(value['head_feature'])
-                    predict_data['ans_type_ids'].append(value['ans_type_ids'])
+                # if len(value) != 4:
+                #     print(1)
+                #     formated_prediction.append({"id": key, "prediction_text": value["text"], "no_answer_probability": value["na_prob"]})
+                # else:
+                ids.append(key)
+                text.append(value['text'])
+                predict_data['input_ids'].append(value['input_ids'])
+                predict_data['head_feature'].append(value['head_feature'])
+                predict_data['ans_type_ids'].append(value['ans_type_ids'])
 
             na_prob = []
             predict_data = datasets.Dataset.from_dict(predict_data)
