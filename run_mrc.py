@@ -16,6 +16,7 @@
 """
 Fine-tuning the library models for question answering using a slightly adapted version of the 🤗 Trainer.
 """
+from sklearn.metrics import classification_report
 from metrics import compute_f1
 
 import logging
@@ -218,8 +219,17 @@ def main():
 
             formated_prediction = sorted(formated_prediction, key=lambda x: x['id'])
 
-            labels = [1 if prob > 0.5 else 0 for prob in na_prob]
+            predict_label = []
+            for ans in formated_prediction:
+                if len(ans["prediction_text"]) == 0:
+                    predict_label.append(0)
+                else: 
+                    predict_label.append(1)
+
+            truth_label = [0 if len(ans['answers']['answer_start']) == 0 else 1 for ans in p.label_ids]
             
+            print(classification_report(truth_label, predict_label, labels=[0,1]))
+
             # remove if run actually
             # precision , recall = [], []
             # wrong = []
@@ -249,7 +259,6 @@ def main():
             # print(sum(recall)/len(formated_prediction))
             # print(formated_prediction[:10])
             # print(p.label_ids[:10])
-            print(p.label_ids[:100])
 
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
