@@ -62,10 +62,13 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
             has_answer_probs += output['has_answer_probs'].tolist()
             score += output['score'].tolist()
             head_features += output['head_features'].tolist()
-
     predictions = {'start_logits': start_logits, 'end_logits': end_logits, 'has_answer_probs': has_answer_probs, 'score': score, 'head_features': head_features}        
+
+    for key, value in predictions:
+        print(type(value))
     with open('prediction_inference.json', 'w') as fp:
-        json.dump(predictions, fp)             
+        json.dump(predictions, fp)
+
     predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
   
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,

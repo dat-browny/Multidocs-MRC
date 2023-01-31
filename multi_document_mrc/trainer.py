@@ -66,7 +66,7 @@ class QuestionAnsweringTrainer(Trainer):
         )
 
         start_logits, end_logits, has_answer_probs, scores, head_features = output.predictions
-        predictions = {'start_logits': start_logits, 'end_logits': end_logits, 'has_answer_probs': has_answer_probs, 'score': scores, 'head_features': head_features}
+        predictions = {'start_logits': start_logits.tolist(), 'end_logits': end_logits.tolist(), 'has_answer_probs': has_answer_probs.tolist(), 'score': scores.tolist(), 'head_features': head_features.tolist()}
         with open('prediction_evaluate.json', 'w') as fp:
             json.dump(predictions, fp) 
 
