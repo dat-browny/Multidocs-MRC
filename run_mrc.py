@@ -193,6 +193,7 @@ def main():
 
             for key, value in p.predictions.items():
                 if len(value) != 4:
+                    print(1)
                     formated_prediction.append({"id": key, "prediction_text": value["text"], "no_answer_probability": value["na_prob"]})
                 else:
                     ids.append(key)
@@ -207,6 +208,7 @@ def main():
             model_reflection.to(device)
             for batch in tqdm(batch_data):
                 batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
+                print(batch_na_probs)
                 na_prob += batch_na_probs
 
             for id, prob in enumerate(na_prob):
