@@ -36,6 +36,8 @@ from transformers import (
     default_data_collator,
     set_seed,
 )
+import json
+
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from transformers.trainer_utils import get_last_checkpoint
@@ -177,7 +179,8 @@ def main():
     metric = evaluate.load("squad_v2" if data_args.version_2_with_negative else "squad")
 
     def compute_metrics(p: EvalPrediction):
-
+        with open(TrainingArguments.output_dir + 'prediction', 'w') as f:
+            json.dump(p.predictions, f)
         if data_args.version_2_with_negative:
             predict_data = {}
             ids = []
@@ -204,7 +207,6 @@ def main():
             for batch in tqdm(batch_data):
                 batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
                 na_prob += batch_na_probs
-            assert len(na_prob) == len(predict_data['input_ids'])
 
             for id, prob in enumerate(na_prob):
                 if prob > 0.5:
