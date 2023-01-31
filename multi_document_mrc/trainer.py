@@ -18,6 +18,8 @@ A subclass of `Trainer` specific to Question-Answering tasks
 import math
 import time
 
+import json
+
 from transformers import Trainer
 from transformers.trainer_utils import PredictionOutput, speed_metrics
 
@@ -62,6 +64,14 @@ class QuestionAnsweringTrainer(Trainer):
                 num_steps=math.ceil(output.num_samples / total_batch_size),
             )
         )
+
+
+
+        with open('~/prediction_evaluate.json', 'w') as fp:
+            json.dumps(output.predictions, fp) 
+
+
+
 
         if self.post_process_function is not None and self.compute_metrics is not None and self.args.should_save:
             # Only the main node write the results by default
