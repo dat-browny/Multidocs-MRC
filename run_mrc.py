@@ -169,7 +169,7 @@ def main():
     )
 
     with open("tokenized_data_e.json", "w") as f:
-        json.dump(eval_dataset, f)
+        json.dump(eval_dataset.to_dict(), f)
 
     # Data collator 
     # We have already padded to max length if the corresponding flag is True, otherwise we need to pad in the data
