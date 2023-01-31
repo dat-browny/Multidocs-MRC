@@ -182,7 +182,7 @@ def main():
     metric = evaluate.load("f1")
 
     def compute_metrics(p: EvalPrediction):
-        # prediction = [1 if predict > 0.5 else 0 for predict in p.predictions]
+        prediction = [1 if predict > 0.5 else 0 for predict in p.predictions]
         print("\n")
         print(classification_report(p.label_ids, prediction, labels=[0,1]))
         return metric.compute(predictions=p.predictions, references=p.label_ids)
