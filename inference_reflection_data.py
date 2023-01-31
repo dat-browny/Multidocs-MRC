@@ -40,7 +40,7 @@ def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batc
 
     tokenized_data_dict = tokenized_data.to_dict()
 
-    with open("tokenized_data_i.json") as f:
+    with open("tokenized_data_i.json", "w") as f:
         json.dump(tokenized_data_dict, f)
 
     for k, v in tokenized_data_dict.items():

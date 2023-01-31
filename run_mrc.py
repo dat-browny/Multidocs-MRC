@@ -168,7 +168,7 @@ def main():
         main_process_first=training_args.main_process_first
     )
 
-    with open("tokenized_data_e.json") as f:
+    with open("tokenized_data_e.json", "w") as f:
         json.dump(eval_dataset, f)
 
     # Data collator 
