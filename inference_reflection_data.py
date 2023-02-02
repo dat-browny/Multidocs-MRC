@@ -206,6 +206,16 @@ def main():
             " this requirement"
         )
 
+    print(model_.__class__)
+    print(training_args.label_names)
+
+
+
+
+
+
+
+
     # Datasets
     dataset_obj = ViMRCReflection(
         tokenizer=tokenizer,
