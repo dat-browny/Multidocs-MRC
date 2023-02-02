@@ -48,7 +48,8 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name
     tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'has_answer_labels'])
     # 'start_positions', 'end_positions',
     predictions = trainer.inference(dataset=tokenized_data)
-
+    print("======================================================")
+    print(len(predictions))
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
                     batched=True,
                     remove_columns=examples.features)
