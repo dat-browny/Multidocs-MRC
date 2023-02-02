@@ -205,8 +205,8 @@ def main():
             " https://huggingface.co/transformers/index.html#supported-frameworks to find the model types that meet"
             " this requirement"
         )
-
-    print(model_.__class__)
+    from transformers.utils import find_labels
+    print(find_labels(model_.__class__))
     print(training_args.label_names)
 
 
