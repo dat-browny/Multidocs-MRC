@@ -45,7 +45,8 @@ logger = logging.getLogger(__name__)
 def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name_or_path, max_seq_length):
 
     tokenized_data_dict = tokenized_data.to_dict()
-    tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'start_positions', 'end_positions', 'has_answer_labels'])
+    tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'has_answer_labels'])
+    # 'start_positions', 'end_positions',
     predictions = trainer.inference(dataset=tokenized_data)
 
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
@@ -132,7 +133,7 @@ def main():
     # Distributed training:
     # The .from_pretrained methods guarantee that only one local process can concurrently
     # download model & vocab.
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     config = RobertaConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,

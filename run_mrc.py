@@ -180,6 +180,7 @@ def main():
     metric = evaluate.load("squad_v2" if data_args.version_2_with_negative else "squad")
 
     def compute_metrics(p: EvalPrediction):
+
         if data_args.version_2_with_negative:
             predict_data = {}
             ids = []
@@ -204,7 +205,6 @@ def main():
                 batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
                 na_prob += batch_na_probs
 
-
             na_prob = [0 if token[0] == 1 else 1 for token in predict_data['ans_type_ids']]
             for id, prob in enumerate(na_prob):
                 if prob > 0.5:
@@ -215,17 +215,16 @@ def main():
             p.label_ids = sorted(p.label_ids,key=lambda x: x['id'])
 
             formated_prediction = sorted(formated_prediction, key=lambda x: x['id'])
+            # predict_label = []
+            # for ans in formated_prediction:
+            #     if len(ans["prediction_text"]) == 0:
+            #         predict_label.append(0)
+            #     else: 
+            #         predict_label.append(1)
 
-            predict_label = []
-            for ans in formated_prediction:
-                if len(ans["prediction_text"]) == 0:
-                    predict_label.append(0)
-                else: 
-                    predict_label.append(1)
-
-            truth_label = [0 if len(ans['answers']['answer_start']) == 0 else 1 for ans in p.label_ids]
+            # truth_label = [0 if len(ans['answers']['answer_start']) == 0 else 1 for ans in p.label_ids]
             
-            print(classification_report(truth_label, predict_label, labels=[0,1]))
+            # print(classification_report(truth_label, predict_label, labels=[0,1]))
             return metric.compute(predictions=formated_prediction, references=p.label_ids)
 
         return metric.compute(predictions=p.predictions, references=p.label_ids)
