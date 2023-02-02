@@ -65,6 +65,11 @@ class QuestionAnsweringTrainer(Trainer):
             )
         )
 
+
+        print(output.predictions)
+
+
+        
         if self.post_process_function is not None and self.compute_metrics is not None and self.args.should_save:
             # Only the main node write the results by default
             eval_preds = self.post_process_function(
@@ -146,7 +151,6 @@ class QuestionAnsweringTrainer(Trainer):
 
     def inference(self, dataset=None, ignore_keys=None, metric_key_prefix: str = "eval"):
 
-        print(1)
         eval_dataset = dataset 
         eval_dataloader = self.get_eval_dataloader(eval_dataset)
 
@@ -168,8 +172,6 @@ class QuestionAnsweringTrainer(Trainer):
         finally:
             self.compute_metrics = compute_metrics
 
-        print(2)
-        
         print("=========================")
         print(output.predictions)
         print("=========================")
