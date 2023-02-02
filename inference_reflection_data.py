@@ -41,7 +41,7 @@ from multi_document_mrc.trainer import QuestionAnsweringTrainer
 
 logger = logging.getLogger(__name__)
 
-def convert_to_instance(trainer, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path, max_seq_length):
+def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name_or_path, max_seq_length):
 
     tokenized_data_dict = tokenized_data.to_dict()
 
@@ -246,11 +246,10 @@ def main():
     )
 
     if training_args.do_train:
-        train_dataset = convert_to_instance(model=model_, 
+        train_dataset = convert_to_instance(trainer=trainer, 
                                         tokenizer=tokenizer, 
                                         examples=train_examples, 
                                         tokenized_data=train_dataset, 
-                                        device=device, batch_size=32, 
                                         model_name_or_path=model_args.model_name_or_path, 
                                         max_seq_length=data_args.max_seq_length)
 
@@ -266,7 +265,6 @@ def main():
                                         tokenizer=tokenizer, 
                                         examples=eval_examples, 
                                         tokenized_data=eval_dataset, 
-                                        device=device, batch_size=32, 
                                         model_name_or_path=model_args.model_name_or_path, 
                                         max_seq_length=data_args.max_seq_length)
 
@@ -281,11 +279,10 @@ def main():
             fp.close()
 
     if training_args.do_predict: 
-        predict_dataset = convert_to_instance(model=model_, 
+        predict_dataset = convert_to_instance(trainer=trainer, 
                                         tokenizer=tokenizer, 
                                         examples=predict_examples, 
                                         tokenized_data=predict_dataset, 
-                                        device=device, batch_size=32, 
                                         model_name_or_path=model_args.model_name_or_path, 
                                         max_seq_length=data_args.max_seq_length)
 
