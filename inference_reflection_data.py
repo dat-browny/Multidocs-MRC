@@ -21,7 +21,7 @@ import transformers
 import datasets
 from tqdm import tqdm
 import json
-
+import evaluate
 from transformers import (
     DataCollatorWithPadding,
     EvalPrediction,
@@ -231,8 +231,94 @@ def main():
         else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
     )
 
-    model_.to(device)
-    
+    # model_.to(device)
+    metric = evaluate.load("squad_v2" if data_args.version_2_with_negative else "squad")
+
+    def compute_metrics(p: EvalPrediction):
+
+        # if data_args.version_2_with_negative:
+        #     predict_data = {}
+        #     ids = []
+        #     text = []
+        #     predict_data['input_ids'] = []
+        #     predict_data['head_feature'] = []
+        #     predict_data['ans_type_ids'] = []
+        #     formated_prediction = []
+
+        #     for key, value in p.predictions.items():
+        #         # if len(value) != 4:
+        #         #     print(1)
+        #         #     formated_prediction.append({"id": key, "prediction_text": value["text"], "no_answer_probability": value["na_prob"]})
+        #         # else:
+        #         ids.append(key)
+        #         text.append(value['text'])
+        #         predict_data['input_ids'].append(value['input_ids'])
+        #         predict_data['head_feature'].append(value['head_feature'])
+        #         predict_data['ans_type_ids'].append(value['ans_type_ids'])
+
+        #     na_prob = []
+        #     predict_data = datasets.Dataset.from_dict(predict_data)
+        #     batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16, shuffle=False)
+        #     model_reflection.to(device)
+        #     for batch in tqdm(batch_data):
+        #         batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
+        #         na_prob += batch_na_probs
+
+        #     for id, prob in enumerate(na_prob):
+        #         if prob > 0.5:
+        #             formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
+        #         else: 
+        #             formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
+
+        #     p.label_ids = sorted(p.label_ids,key=lambda x: x['id'])
+
+        #     formated_prediction = sorted(formated_prediction, key=lambda x: x['id'])
+
+        #     predict_label = []
+        #     for ans in formated_prediction:
+        #         if len(ans["prediction_text"]) == 0:
+        #             predict_label.append(0)
+        #         else: 
+        #             predict_label.append(1)
+
+        #     truth_label = [0 if len(ans['answers']['answer_start']) == 0 else 1 for ans in p.label_ids]
+            
+        #     print(classification_report(truth_label, predict_label, labels=[0,1]))
+
+        #     # remove if run actually
+        #     # precision , recall = [], []
+        #     # wrong = []
+        #     # for id, sample in enumerate(formated_prediction):
+        #     #     predicted_answer = sample['prediction_text']
+        #     #     truth_answer = label_ids[id]['answers']['text']
+        #     #     if len(truth_answer) == 0:
+        #     #         if predicted_answer == "":
+        #     #             precision.append(1)
+        #     #             recall.append(1)
+        #     #         else:
+        #     #             precision.append(0)
+        #     #             recall.append(0)
+        #     #     else:
+        #     #         score = [compute_f1(predicted_answer, answer) for answer in truth_answer]
+        #     #         try:
+        #     #             precision.append(max(score[:][0]))
+        #     #             recall.append(max(score[:][1]))
+        #     #         except:
+        #     #             wrong.append([predicted_answer, truth_answer])
+
+            
+        #     # print(precision)
+        #     # print(recall)
+        #     # print(wrong)
+        #     # print(sum(precision)/len(formated_prediction))
+        #     # print(sum(recall)/len(formated_prediction))
+        #     # print(formated_prediction[:10])
+        #     # print(p.label_ids[:10])
+
+        #     return metric.compute(predictions=formated_prediction, references=p.label_ids)
+
+        return metric.compute(predictions=p.predictions, references=p.label_ids)   
+        
     trainer = QuestionAnsweringTrainer(
         model=model_,
         args=training_args,
@@ -242,7 +328,7 @@ def main():
         tokenizer=tokenizer,
         data_collator=data_collator,
         post_process_function=dataset_obj.post_processing_function,
-        compute_metrics=None,
+        compute_metrics=compute_metrics,
     )
 
     if training_args.do_train:
