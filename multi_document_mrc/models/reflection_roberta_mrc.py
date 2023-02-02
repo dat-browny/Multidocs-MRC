@@ -251,12 +251,15 @@ class ReflectionModel(RobertaModel):
         self.embeddings = ReflectEmbeddings(config)
         self.encoder = RobertaEncoder(config)
         self.pooler = RobertaPooler(config) if add_pooling_layer else None
+        
+        #Freeze layer parameter according to reference of paper
         for param in self.embeddings.parameters():
             param.requires_grad = False
         for param in self.encoder.parameters():
             param.requires_grad = False
         for param in self.pooler.parameters():
             param.requires_grad = False        
+
         self.linear = nn.Linear(self.concat_dim, self.config.hidden_size)
         self.gelu = nn.GELU()
         self.A = nn.parameter.Parameter(torch.rand(self.config.hidden_size, requires_grad=True))

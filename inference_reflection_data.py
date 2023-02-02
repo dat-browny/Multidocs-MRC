@@ -1,3 +1,4 @@
+from sklearn.metrics import classification_report
 from transformers import (
     RobertaConfig,
     HfArgumentParser,
@@ -44,35 +45,7 @@ logger = logging.getLogger(__name__)
 def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name_or_path, max_seq_length):
 
     tokenized_data_dict = tokenized_data.to_dict()
-
     tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'start_positions', 'end_positions', 'has_answer_labels'])
-
-    # for k, v in tokenized_data_dict.items():
-    #     tokenized_data_dict[k] = torch.tensor(v, device=device)
-
-    # infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
-    # start_logits = []
-    # end_logits = []
-    # has_answer_probs = []
-    # score = []
-    # head_features = []
-
-    # with torch.no_grad():
-    #     for batch in tqdm(infer_data):
-    #         output = model(input_ids=batch['input_ids'].to(device), 
-    #                                 # start_positions=batch['start_positions'].to(device), 
-    #                                 # end_positions=batch['end_positions'].to(device), 
-    #                                 has_answer_labels=batch['has_answer_labels'].to(device), 
-    #                                 return_dict=True)
-
-    #         start_logits += output['start_logits'].tolist()
-    #         end_logits += output['end_logits'].tolist()
-    #         has_answer_probs += output['has_answer_probs'].tolist()
-    #         score += output['score'].tolist()
-    #         head_features += output['head_features'].tolist()
-    # predictions = {'start_logits': start_logits, 'end_logits': end_logits, 'has_answer_probs': has_answer_probs, 'score': score, 'head_features': head_features}        
-
-    # predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
     predictions = trainer.inference(dataset=tokenized_data)
 
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
@@ -97,7 +70,8 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name
     tokenized_examples_['has_answer_labels'] = []
     tokenized_examples_['attention_mask'] = []
     tokenized_examples_['head_features'] = []
-
+    probs = []
+    truth = []
     for id, feature_slice in tqdm(enumerate(feature_index)):
         tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice])
         tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice])
@@ -106,16 +80,30 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name
         start_position = start_positions[id]
         end_position = end_positions[id]
         ans_type_id = [0]* max_seq_length
+
+
+        
+
+
+
+
         if na_probs[id] > 0.5 and start_position < end_position:
             ans_type_id[0] = 2
+            probs.append(1)
         else:
             ans_type_id[0] = 1
+            probs.append(0)
         if start_position < end_position:
             ans_type_id[start_position] = 3
             for i in range(start_position+1, end_position+1):
                 ans_type_id[i] = 4
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
 
+    print(classification_report(tokenized_examples_['has_answer_labels'], probs, labels=[0,1]))
+
+
+
+    
     return tokenized_examples_
         
 def main():
