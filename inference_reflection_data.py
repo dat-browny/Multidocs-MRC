@@ -75,9 +75,6 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, device, ba
     # predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
     predictions = trainer.inference(dataset=tokenized_data)
 
-    print(len(predictions))
-
-
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
                     batched=True,
                     remove_columns=examples.features)
@@ -102,9 +99,9 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, device, ba
     tokenized_examples_['head_features'] = []
 
     for id, feature_slice in tqdm(enumerate(feature_index)):
-        tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice].tolist())
-        tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice].tolist())
-        tokenized_examples_['attention_mask'].append(tokenized_data_dict['attention_mask'][feature_slice].tolist())
+        tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice])
+        tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice])
+        tokenized_examples_['attention_mask'].append(tokenized_data_dict['attention_mask'][feature_slice])
         tokenized_examples_['head_features'].append(head_features[id].tolist())
         start_position = start_positions[id]
         end_position = end_positions[id]
