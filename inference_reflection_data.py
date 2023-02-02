@@ -261,7 +261,7 @@ def main():
             fp.close()
 
     if training_args.do_eval: 
-        eval_dataset = convert_to_instance(model=model_, 
+        eval_dataset = convert_to_instance(trainer=trainer, 
                                         tokenizer=tokenizer, 
                                         examples=eval_examples, 
                                         tokenized_data=eval_dataset, 
