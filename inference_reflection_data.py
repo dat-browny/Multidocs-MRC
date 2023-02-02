@@ -71,8 +71,12 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, device, ba
     # predictions = {'start_logits': start_logits, 'end_logits': end_logits, 'has_answer_probs': has_answer_probs, 'score': score, 'head_features': head_features}        
 
     # predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
-    
+    print(tokenized_data)
+    print("==========================================================================================")
     predictions = trainer.inference(dataset=tokenized_data)
+
+    print(len(predictions))
+
 
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
                     batched=True,
