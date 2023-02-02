@@ -165,7 +165,9 @@ class QuestionAnsweringTrainer(Trainer):
             )
         finally:
             self.compute_metrics = compute_metrics
-
+        print("=========================")
+        print(output.predictions)
+        print("=========================")
         return output.predictions
 
 class ReflectionTrainer(Trainer):
