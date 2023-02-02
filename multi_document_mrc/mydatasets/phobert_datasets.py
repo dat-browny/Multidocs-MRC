@@ -887,7 +887,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
         model: PreTrainedModel = None,
         is_training_reflection = True
     ):
-        
+
         if len(predictions) != 5:
             raise ValueError(
                 "`predictions` should be a tuple with five elements (start_logits, end_logits, has_answer_logits, score, head_features).")
@@ -945,12 +945,12 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
             offset_mapping = features[feature_index]["offset_mapping"]
             token_is_max_context = features[feature_index].get("token_is_max_context", None)
 
-            if is_training_reflection:
-                start_indexes = torch.argsort(start_logits)[-n_best_size:: 1].tolist()
-                end_indexes = torch.argsort(end_logits)[-n_best_size:: 1].tolist()
-            else: 
-                start_indexes = np.argsort(start_logits)[-n_best_size:: 1].tolist()
-                end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
+            # if is_training_reflection:
+            #     start_indexes = torch.argsort(start_logits)[-n_best_size:: 1].tolist()
+            #     end_indexes = torch.argsort(end_logits)[-n_best_size:: 1].tolist()
+            # else: 
+            start_indexes = np.argsort(start_logits)[-n_best_size:: 1].tolist()
+            end_indexes = np.argsort(end_logits)[-n_best_size:: 1].tolist()
 
             start_indexes.reverse()
             end_indexes.reverse()
