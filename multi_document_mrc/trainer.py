@@ -65,14 +65,6 @@ class QuestionAnsweringTrainer(Trainer):
             )
         )
 
-        start_logits, end_logits, has_answer_probs, scores, head_features = output.predictions
-        predictions = {'start_logits': start_logits.tolist(), 'end_logits': end_logits.tolist(), 'has_answer_probs': has_answer_probs.tolist(), 'score': scores.tolist(), 'head_features': head_features.tolist()}
-        with open('prediction_evaluate.json', 'w') as fp:
-            json.dump(predictions, fp) 
-
-
-
-
         if self.post_process_function is not None and self.compute_metrics is not None and self.args.should_save:
             # Only the main node write the results by default
             eval_preds = self.post_process_function(
@@ -151,6 +143,30 @@ class QuestionAnsweringTrainer(Trainer):
                 metrics[f"{metric_key_prefix}_{key}"] = metrics.pop(key)
         metrics.update(output.metrics)
         return PredictionOutput(predictions=predictions.predictions, label_ids=predictions.label_ids, metrics=metrics)
+
+    def inference(self, dataset=None, ignore_keys=None, metric_key_prefix: str = "eval"):
+        eval_dataset = dataset 
+        eval_dataloader = self.get_eval_dataloader(eval_dataset)
+
+        # Temporarily disable metric computation, we will do it in the loop here.
+        compute_metrics = self.compute_metrics
+        self.compute_metrics = None
+        eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
+        start_time = time.time()
+        try:
+            output = eval_loop(
+                eval_dataloader,
+                description="Inference",
+                # No point gathering the predictions if there are no metrics, otherwise we defer to
+                # self.args.prediction_loss_only
+                prediction_loss_only=True if compute_metrics is None else None,
+                ignore_keys=ignore_keys,
+                metric_key_prefix=metric_key_prefix,
+            )
+        finally:
+            self.compute_metrics = compute_metrics
+
+        return output.predictions
 
 class ReflectionTrainer(Trainer):
     def __init__(self, *args, eval_examples=None, post_process_function=None, **kwargs):

@@ -23,50 +23,57 @@ from tqdm import tqdm
 import json
 
 from transformers import (
+    DataCollatorWithPadding,
+    EvalPrediction,
     HfArgumentParser,
     PreTrainedTokenizerFast,
     TrainingArguments,
+    default_data_collator,
     set_seed,
 )
+
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils.versions import require_version
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
+from multi_document_mrc.trainer import QuestionAnsweringTrainer
 
 
 logger = logging.getLogger(__name__)
 
-def convert_to_instance(model, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path, max_seq_length):
+def convert_to_instance(trainer, tokenizer, examples, tokenized_data, device, batch_size, model_name_or_path, max_seq_length):
 
     tokenized_data_dict = tokenized_data.to_dict()
 
-    for k, v in tokenized_data_dict.items():
-        tokenized_data_dict[k] = torch.tensor(v, device=device)
+    # for k, v in tokenized_data_dict.items():
+    #     tokenized_data_dict[k] = torch.tensor(v, device=device)
 
-    infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
-    start_logits = []
-    end_logits = []
-    has_answer_probs = []
-    score = []
-    head_features = []
+    # infer_data = DataLoader(tokenized_data.with_format("torch"), batch_size=batch_size)
+    # start_logits = []
+    # end_logits = []
+    # has_answer_probs = []
+    # score = []
+    # head_features = []
 
-    with torch.no_grad():
-        for batch in tqdm(infer_data):
-            output = model(input_ids=batch['input_ids'].to(device), 
-                                    # start_positions=batch['start_positions'].to(device), 
-                                    # end_positions=batch['end_positions'].to(device), 
-                                    has_answer_labels=batch['has_answer_labels'].to(device), 
-                                    return_dict=True)
+    # with torch.no_grad():
+    #     for batch in tqdm(infer_data):
+    #         output = model(input_ids=batch['input_ids'].to(device), 
+    #                                 # start_positions=batch['start_positions'].to(device), 
+    #                                 # end_positions=batch['end_positions'].to(device), 
+    #                                 has_answer_labels=batch['has_answer_labels'].to(device), 
+    #                                 return_dict=True)
 
-            start_logits += output['start_logits'].tolist()
-            end_logits += output['end_logits'].tolist()
-            has_answer_probs += output['has_answer_probs'].tolist()
-            score += output['score'].tolist()
-            head_features += output['head_features'].tolist()
-    predictions = {'start_logits': start_logits, 'end_logits': end_logits, 'has_answer_probs': has_answer_probs, 'score': score, 'head_features': head_features}        
+    #         start_logits += output['start_logits'].tolist()
+    #         end_logits += output['end_logits'].tolist()
+    #         has_answer_probs += output['has_answer_probs'].tolist()
+    #         score += output['score'].tolist()
+    #         head_features += output['head_features'].tolist()
+    # predictions = {'start_logits': start_logits, 'end_logits': end_logits, 'has_answer_probs': has_answer_probs, 'score': score, 'head_features': head_features}        
 
-    predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
-  
+    # predictions = tuple(torch.tensor(i) for i in (start_logits, end_logits, has_answer_probs, score, head_features))
+    
+    predictions = trainer.inference(dataset=tokenized_data)
+
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
                     batched=True,
                     remove_columns=examples.features)
@@ -217,8 +224,25 @@ def main():
 
     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
         main_process_first=training_args.main_process_first)
+    
+    data_collator = (
+        default_data_collator
+        if data_args.pad_to_max_length
+        else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
+    )
 
     model_.to(device)
+    
+    trainer = QuestionAnsweringTrainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset if training_args.do_train else None,
+        eval_dataset=eval_dataset if training_args.do_eval else None,
+        eval_examples=eval_examples if training_args.do_eval else None,
+        tokenizer=tokenizer,
+        data_collator=data_collator,
+        post_process_function=dataset_obj.post_processing_function,
+    )
 
     if training_args.do_train:
         train_dataset = convert_to_instance(model=model_, 
