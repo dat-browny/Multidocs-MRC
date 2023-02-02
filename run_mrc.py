@@ -211,7 +211,7 @@ def main():
                 na_prob += batch_na_probs
 
             for id, prob in enumerate(na_prob):
-                if prob > 0.8:
+                if prob > 0.9:
                     formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
                 else: 
                     formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})

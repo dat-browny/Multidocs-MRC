@@ -70,8 +70,7 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name
     tokenized_examples_['has_answer_labels'] = []
     tokenized_examples_['attention_mask'] = []
     tokenized_examples_['head_features'] = []
-    probs = []
-    truth = []
+
     for id, feature_slice in tqdm(enumerate(feature_index)):
         tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice])
         tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice])
@@ -80,25 +79,15 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name
         start_position = start_positions[id]
         end_position = end_positions[id]
         ans_type_id = [0]* max_seq_length
-
-
-        
-
-
-
-
         if na_probs[id] > 0.5 and start_position < end_position:
             ans_type_id[0] = 2
-            probs.append(1)
         else:
             ans_type_id[0] = 1
-            probs.append(0)
         if start_position < end_position:
             ans_type_id[start_position] = 3
             for i in range(start_position+1, end_position+1):
                 ans_type_id[i] = 4
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
-
 
     return tokenized_examples_
         
