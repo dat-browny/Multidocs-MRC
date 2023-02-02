@@ -99,11 +99,7 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name
                 ans_type_id[i] = 4
         tokenized_examples_['ans_type_ids'].append(ans_type_id)
 
-    print(classification_report(tokenized_examples_['has_answer_labels'], probs, labels=[0,1]))
 
-
-
-    
     return tokenized_examples_
         
 def main():
