@@ -45,6 +45,8 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, device, ba
 
     tokenized_data_dict = tokenized_data.to_dict()
 
+    tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'start_positions', 'end_positions'])
+    
     # for k, v in tokenized_data_dict.items():
     #     tokenized_data_dict[k] = torch.tensor(v, device=device)
 
