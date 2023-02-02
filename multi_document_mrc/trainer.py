@@ -160,10 +160,7 @@ class QuestionAnsweringTrainer(Trainer):
             # self.args.prediction_loss_only
             prediction_loss_only=False,
             ignore_keys=ignore_keys,
-            metric_key_prefix=metric_key_prefix,
         )
-
-
         return output.predictions
 
 class ReflectionTrainer(Trainer):
