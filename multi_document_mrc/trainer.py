@@ -145,6 +145,8 @@ class QuestionAnsweringTrainer(Trainer):
         return PredictionOutput(predictions=predictions.predictions, label_ids=predictions.label_ids, metrics=metrics)
 
     def inference(self, dataset=None, ignore_keys=None, metric_key_prefix: str = "eval"):
+
+        print(1)
         eval_dataset = dataset 
         eval_dataloader = self.get_eval_dataloader(eval_dataset)
 
@@ -165,6 +167,9 @@ class QuestionAnsweringTrainer(Trainer):
             )
         finally:
             self.compute_metrics = compute_metrics
+
+        print(2)
+        
         print("=========================")
         print(output.predictions)
         print("=========================")
