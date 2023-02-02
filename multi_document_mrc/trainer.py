@@ -65,11 +65,6 @@ class QuestionAnsweringTrainer(Trainer):
             )
         )
 
-
-        print(output.predictions)
-
-
-        
         if self.post_process_function is not None and self.compute_metrics is not None and self.args.should_save:
             # Only the main node write the results by default
             eval_preds = self.post_process_function(

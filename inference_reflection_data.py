@@ -242,6 +242,7 @@ def main():
         tokenizer=tokenizer,
         data_collator=data_collator,
         post_process_function=dataset_obj.post_processing_function,
+        compute_metrics=None,
     )
 
     if training_args.do_train:
