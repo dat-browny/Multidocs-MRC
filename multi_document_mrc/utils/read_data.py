@@ -500,9 +500,14 @@ class SquadReaderV2():
             mapidx = MapNewIndex(context, new_context)
             for qa in qas:
                 qa["question"] = self._preprocess_text(qa["question"])
-                for answer in qa["answers"]:
-                    answer["text"] = self._preprocess_text(answer["text"])
-                    answer["answer_start"] = mapidx.map_new_char_index(answer["answer_start"])
+                if not qa["is_positive"]:
+                    for answer in qa["plausible_answers"]:
+                        answer["text"] = self._preprocess_text(answer["text"])
+                        answer["answer_start"] = mapidx.map_new_char_index(answer["answer_start"])
+                else:
+                    for answer in qa["answers"]:
+                        answer["text"] = self._preprocess_text(answer["text"])
+                        answer["answer_start"] = mapidx.map_new_char_index(answer["answer_start"])
                 self._redefine_answer_char_start(new_context, qa)
 
             qas = [qa for qa in qas if self._check_true_index_answer(new_context, qa)]
