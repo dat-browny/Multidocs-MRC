@@ -1329,9 +1329,9 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
 
                 print(sep_id)
                 print(type(sep_id))
-                print(self.tokenizer.encode(examples['plausible_answers']['sample_index']['text']))
-                print(type((self.tokenizer.encode(examples['plausible_answers']['sample_index']['text']))))
-                plausible_token = [sep_id] + self.tokenizer.encode(examples['plausible_answers']['sample_index']['text']) + [sep_id]
+                print(self.tokenizer.encode(examples['plausible_answers'][sample_index]['text']))
+                print(type((self.tokenizer.encode(examples['plausible_answers'][sample_index]['text']))))
+                plausible_token = [sep_id] + self.tokenizer.encode(examples['plausible_answers'][sample_index]['text']) + [sep_id]
                 input_ids[-len(plausible_token):] = plausible_token
                 tokenized_examples["has_answer_labels"].append(0)
             else:
