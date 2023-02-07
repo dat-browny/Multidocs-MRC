@@ -394,7 +394,7 @@ class SquadReaderV2():
                 if answer["text"] == context[answer["answer_start"]:answer["answer_start"]+len(answer["text"])]:
                     continue
                 else:
-                    qa["answers"][i] = None
+                    qa["plausible_answers"][i] = None
         else:
             for i, answer in enumerate(qa["answers"]):
                 if answer["text"] == context[answer["answer_start"]:answer["answer_start"]+len(answer["text"])]:
@@ -495,7 +495,6 @@ class SquadReaderV2():
         new_context = self._preprocess_text(context)
         try:
             mapidx = MapNewIndex(context, new_context)
-
             for qa in qas:
                 qa["question"] = self._preprocess_text(qa["question"])
                 for answer in qa["answers"]:
