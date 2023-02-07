@@ -1307,8 +1307,6 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
         offset_mapping = tokenized_examples.pop("offset_mapping")
 
         # Let's label those examples!
-        tokenized_examples["start_positions"] = []
-        tokenized_examples["end_positions"] = []
         tokenized_examples["has_answer_labels"] = []
 
         for i, offsets in enumerate(offset_mapping):
@@ -1334,8 +1332,6 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
             else:
                 # If no answers are given, set the cls_index as answer.
                 if len(answers["answer_start"]) == 0:
-                    tokenized_examples["start_positions"].append(cls_index)
-                    tokenized_examples["end_positions"].append(cls_index)
                     # has_answer_labels==0 tương ứng với câu hỏi không có câu trả lời, ngược lại
                     tokenized_examples["has_answer_labels"].append(0)
                 else:
@@ -1355,18 +1351,10 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
 
                     # Detect if the answer is out of the span (in which case this feature is labeled with the CLS index).
                     if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
-                        tokenized_examples["start_positions"].append(cls_index)
-                        tokenized_examples["end_positions"].append(cls_index)
                         tokenized_examples["has_answer_labels"].append(0)
                     else:
                         # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
                         # Note: we could go after the last offset if the answer is the last word (edge case).
-                        while token_start_index < len(offsets) and offsets[token_start_index][0] <= start_char:
-                            token_start_index += 1
-                        tokenized_examples["start_positions"].append(token_start_index - 1)
-                        while offsets[token_end_index][1] >= end_char:
-                            token_end_index -= 1
-                        tokenized_examples["end_positions"].append(token_end_index + 1)
                         tokenized_examples["has_answer_labels"].append(1)
 
         return tokenized_examples
