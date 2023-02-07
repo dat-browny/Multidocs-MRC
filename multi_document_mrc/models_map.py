@@ -101,6 +101,7 @@ MODELS_MAP = {
         tokenizer_class=PhobertTokenizerFast,
         description="Phobert Question Answering model, Has a Answer Prediction Layer, modify content title concatenation"
     ),
+    
 }
 MODEL_VERSIONS = list(MODELS_MAP.keys())
 
