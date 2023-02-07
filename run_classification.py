@@ -163,8 +163,7 @@ def main():
     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
         main_process_first=training_args.main_process_first
     )
-    for input_ids in train_dataset[:10]['input_ids']:
-        print(tokenizer.decode(input_ids))
+    print(train_dataset[:100]['has_answer_labels'])
 
 if __name__ == "__main__":
     main()
