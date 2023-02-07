@@ -1277,7 +1277,7 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
 class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
     use_wordsegment = True
-    reader_class = SquadReader
+    reader_class = SquadReaderV2
 
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
