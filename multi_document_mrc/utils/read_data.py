@@ -341,7 +341,7 @@ class SquadReaderV2():
         for sample in raw_data:
             for qa in sample["qas"]:
                 self._redefine_answer_char_start(sample["context"], qa)
-            sample["qas"] = [qa for qa in tqdm.tqdm(sample["qas"]) if self._check_true_index_answer(sample["context"], qa)]
+            sample["qas"] = [qa for qa in sample["qas"] if self._check_true_index_answer(sample["context"], qa)]
 
         data = [self.tokenize_and_convert_sample(sample) for sample in tqdm.tqdm(raw_data)]
         dict_data = self.convert_dict_data(data)
@@ -398,18 +398,22 @@ class SquadReaderV2():
                     continue
                 else:
                     qa["plausible_answers"][i] = None
+            qa["plausible_answers"] = [answer for answer in qa["plausible_answers"] if answer is not None]
+            if len(qa["plausible_answers"]) == 0:
+                return False
+            else:
+                return True
         else:
             for i, answer in enumerate(qa["answers"]):
                 if answer["text"] == context[answer["answer_start"]:answer["answer_start"]+len(answer["text"])]:
                     continue
                 else:
                     qa["answers"][i] = None
-        qa["answers"] = [answer for answer in qa["answers"] if answer is not None]
-
-        if len(qa["answers"]) == 0:
-            return False
-        else:
-            return True
+            qa["answers"] = [answer for answer in qa["answers"] if answer is not None]
+            if len(qa["answers"]) == 0:
+                return False
+            else:
+                return True
 
     def _preprocess_text(self, text: str) -> str:
         """Tiền xử lý dữ liệu text."""
