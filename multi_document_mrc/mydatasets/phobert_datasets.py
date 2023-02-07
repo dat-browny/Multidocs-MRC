@@ -18,6 +18,7 @@ import collections
 from tqdm import tqdm
 import os
 import json
+import random
 
 logger = logging.getLogger(__name__)
 config = RobertaConfig.from_pretrained("vinai/phobert-base")
@@ -1279,12 +1280,25 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
     use_wordsegment = True
     reader_class = SquadReaderV2
 
+    def random_token(self, input_ids, sep_index, pad_index):
+        num_token = random.randint(5,8)
+        if pad_index is None:
+            start_token = random.randint(sep_index, len(input_ids)-num_token-1)
+            random_token = [self.tokenizer.sep_token_id] + input_ids[start_token:start_token+num_token]
+            input_ids[-len(random_token)-1:-1] = random_token
+        else:
+            start_token = random.randint(sep_index, pad_index-num_token-1)
+            random_token =  input_ids[start_token:start_token+num_token] + [self.tokenizer.sep_token_id]
+            input_ids[pad_index:pad_index+len(random_token)] = random_token
+        return input_ids
+
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
         # left whitespace
         examples[self.question_column_name] = [q.lstrip() for q in examples[self.question_column_name]]
         sep_id = self.tokenizer.sep_token_id
+        pad_id = self.tokenizer.pad_token_id
         # Tokenize our examples with truncation and maybe padding, but keep the overflows using a stride. This results
         # in one example possible giving several features when a context is long, each of those features having a
         # context that overlaps a bit the context of the previous feature.
@@ -1312,10 +1326,11 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
         for i, offsets in enumerate(offset_mapping):
             # We will label impossible answers with the index of the CLS token.
             input_ids = tokenized_examples["input_ids"][i]
-            cls_index = input_ids.index(self.tokenizer.cls_token_id)
-
             sep_index = input_ids.index(sep_id)
-
+            try: 
+                pad_index = input_ids.index(pad_id)
+            except:
+                pad_index = None
             # Grab the sequence corresponding to that example (to know what is the context and what is the question).
             sequence_ids = tokenized_examples.sequence_ids(i)
 
@@ -1326,13 +1341,17 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
             if possibility == True:
                 plausible_answers = examples['plausible_answers'][sample_index]['text'][0]
                 plausible_token = self.tokenizer.encode(plausible_answers)
-                input_ids[-len(plausible_token)+1:] = plausible_token[1:]
-                assert len(input_ids) == self.max_seq_length
+                if pad_index is None:
+                    input_ids[-len(plausible_token)+1:] = plausible_token[1:]
+                else:
+                    pad_index = input_ids.index(pad_id)
+                    input_ids[pad_index:pad_index+len(plausible_token)-1] = plausible_token[1:]
                 tokenized_examples["has_answer_labels"].append(0)
             else:
                 # If no answers are given, set the cls_index as answer.
                 if len(answers["answer_start"]) == 0:
                     # has_answer_labels==0 tương ứng với câu hỏi không có câu trả lời, ngược lại
+                    input_ids = self.random_token(input_ids=input_ids, sep_index=sep_index, pad_index=pad_index)
                     tokenized_examples["has_answer_labels"].append(0)
                 else:
                     # Start/end character index of the answer in the text.
@@ -1351,10 +1370,13 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
 
                     # Detect if the answer is out of the span (in which case this feature is labeled with the CLS index).
                     if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
+                        input_ids = self.random_token(input_ids=input_ids, sep_index=sep_index, pad_index=pad_index)
                         tokenized_examples["has_answer_labels"].append(0)
                     else:
                         # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
                         # Note: we could go after the last offset if the answer is the last word (edge case).
+                        answer_token = self.tokenizer.encode(answers['text'][0])
+                        input_ids[-len(answer_token)+1:] = answer_token[1:]
                         tokenized_examples["has_answer_labels"].append(1)
 
         return tokenized_examples
