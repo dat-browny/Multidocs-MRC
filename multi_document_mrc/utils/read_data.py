@@ -338,13 +338,11 @@ class SquadReaderV2():
         print(f"Đọc file dữ liệu: {data_file_path}")
         raw_data = self._read_squad_format(data_file_path)
 
-        print(len(raw_data))
         for sample in raw_data:
             for qa in sample["qas"]:
                 self._redefine_answer_char_start(sample["context"], qa)
-            sample["qas"] = [qa for qa in sample["qas"] if self._check_true_index_answer(sample["context"], qa)]
+            sample["qas"] = [qa for qa in tqdm.tqdm(sample["qas"]) if self._check_true_index_answer(sample["context"], qa)]
 
-        print(len(raw_data))
         data = [self.tokenize_and_convert_sample(sample) for sample in tqdm.tqdm(raw_data)]
         dict_data = self.convert_dict_data(data)
 
