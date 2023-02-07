@@ -1316,6 +1316,9 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
             input_ids = tokenized_examples["input_ids"][i]
             cls_index = input_ids.index(self.tokenizer.cls_token_id)
 
+            sep_index = input_ids.index(sep_id)
+
+            print(sep_index)
             # Grab the sequence corresponding to that example (to know what is the context and what is the question).
             sequence_ids = tokenized_examples.sequence_ids(i)
 
