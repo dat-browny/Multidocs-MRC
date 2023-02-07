@@ -48,9 +48,7 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name
     tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'has_answer_labels'])
     # 'start_positions', 'end_positions',
     predictions = trainer.inference(dataset=tokenized_data)
-    print("====================================================================")
-    for predict in predictions:
-        print(predict.shape)
+    predictions_ = (predictions[0], predictions[1], predictions[3], predictions[4], predictions[5])
 
     features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
                     batched=True,
@@ -58,7 +56,7 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name
 
     instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(tokenizer, model_name_or_path=model_name_or_path).postprocess_qa_predictions(examples=examples, 
                     features=features, 
-                    predictions=predictions,
+                    predictions=predictions_,
                     version_2_with_negative=True,
                     is_training_reflection=True)
 
