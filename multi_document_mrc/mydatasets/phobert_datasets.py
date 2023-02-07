@@ -1318,7 +1318,6 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
 
             sep_index = input_ids.index(sep_id)
 
-            print(sep_index)
             # Grab the sequence corresponding to that example (to know what is the context and what is the question).
             sequence_ids = tokenized_examples.sequence_ids(i)
 
@@ -1327,7 +1326,7 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
             answers = examples[self.answer_column_name][sample_index]
             possibility = examples["is_impossible"][sample_index]
             if possibility == False:
-                plausible_token = [sep_id] + self.tokenizer.tokenize(examples['plausible_answers']['sample_index']['text']) + [sep_id]
+                plausible_token = [sep_id] + self.tokenizer.encode(examples['plausible_answers']['sample_index']['text']) + [sep_id]
                 input_ids[-len(plausible_token):] = plausible_token
                 tokenized_examples["has_answer_labels"].append(0)
             else:
