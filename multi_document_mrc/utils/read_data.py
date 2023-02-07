@@ -360,7 +360,8 @@ class SquadReaderV2():
             "context": [],
             "question": [],
             "answers": [],
-            "plausible_answers": []
+            "plausible_answers": [],
+            "is_impossible": []
         }
         idx = 0
         for sample in data:
@@ -368,6 +369,7 @@ class SquadReaderV2():
                 dict_data["title"].append(sample["title"])
                 dict_data["context"].append(sample["context"])
                 dict_data["question"].append(qa["question"])
+                dict_data["is_impossible"].append(not qa["is_positive"])
                 if not qa["is_positive"]:
                     dict_data["answers"].append({
                         "text": [],

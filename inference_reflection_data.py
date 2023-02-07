@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name_or_path, max_seq_length):
 
     tokenized_data_dict = tokenized_data.to_dict()
-    tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'has_answer_labels'])
+    tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'start_positions', 'end_positions', 'has_answer_labels'])
     # 'start_positions', 'end_positions',
     predictions = trainer.inference(dataset=tokenized_data)
     predictions_ = (predictions[0], predictions[1], predictions[3], predictions[4], predictions[5])
