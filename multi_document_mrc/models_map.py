@@ -9,7 +9,6 @@ from multi_document_mrc.mydatasets.phobert_datasets import (
     ViMRCDatasetsForPhoBERT,
     ViMRCDatasetsV1bForPhoBERT,
     ViMRCDatasetsForPhoBERTNoHapReflection,
-    ViMRCDatasetsV1bForPhoBERT_compare,
     ViMRCReflection
 )
 from multi_document_mrc.models.roberta_mrc import (
