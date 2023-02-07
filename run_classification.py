@@ -163,3 +163,6 @@ def main():
     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
         main_process_first=training_args.main_process_first
     )
+
+if __name__ == "__main__":
+    main()
