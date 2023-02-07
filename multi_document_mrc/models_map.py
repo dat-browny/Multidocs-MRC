@@ -4,6 +4,7 @@ from transformers.modeling_utils import PreTrainedModel
 from multi_document_mrc.mydatasets import QuestionAnsweringDataset
 from multi_document_mrc.mydatasets.bert_datasets import MRCDatasetsForBERT
 from multi_document_mrc.mydatasets.phobert_datasets import (
+    ViMRCDatasetsForPhoBERT_classification,
     ViMRCDatasetsForPhoBERTNoHap,
     ViMRCDatasetsForPhoBERT,
     ViMRCDatasetsV1bForPhoBERT,
@@ -80,28 +81,28 @@ MODELS_MAP = {
         tokenizer_class=PhobertTokenizerFast,
         description="Phobert Question Answering model, Has a Answer Prediction Layer, modify content title concatenation"
     ),
-    "phobert-qa-mrc-block":VersionClassesMap(
+    "phobert-qa-mrc-block": VersionClassesMap(
         model_class=RobertaForMRCReflection,
         dataset_class=ViMRCDatasetsForPhoBERTNoHapReflection,
         config_class=RobertaConfig,
         tokenizer_class=PhobertTokenizerFast,
-        description="Phobert Question Answering model, Has a Answer Prediction Layer, modify content title concatenation"
+        description="Phobert Question Answering model, Has a Answer Prediction Layer, with different objective function"
     ),
-    "phobert-qa-reflection-block":VersionClassesMap(
+    "phobert-qa-reflection-block": VersionClassesMap(
         model_class=ReflectionModel,
         dataset_class=ViMRCReflection,
         config_class=RobertaConfig,
         tokenizer_class=PhobertTokenizerFast,
-        description="Phobert Question Answering model, Has a Answer Prediction Layer, modify content title concatenation"
+        description="Phobert Question Answering model, to classify what is no answer"
     ),
-    "phobert-qa-mrc-compare":  VersionClassesMap(
-        model_class=RobertaForMRCReflection,
-        dataset_class=ViMRCDatasetsV1bForPhoBERT_compare,
+    "phobert-qa-classification-block": VersionClassesMap(
+        model_class=ReflectionModel,
+        dataset_class=ViMRCDatasetsForPhoBERT_classification,
         config_class=RobertaConfig,
         tokenizer_class=PhobertTokenizerFast,
-        description="Phobert Question Answering model, Has a Answer Prediction Layer, modify content title concatenation"
-    ),
-    
+        description="Phobert Question Answering model, to classify what is no answer"
+    )
+
 }
 MODEL_VERSIONS = list(MODELS_MAP.keys())
 

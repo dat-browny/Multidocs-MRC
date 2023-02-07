@@ -1,4 +1,4 @@
-from multi_document_mrc.utils.read_data import SquadReader, SquadReaderV1b
+from multi_document_mrc.utils.read_data import SquadReader, SquadReaderV1b, SquadReaderV2
 from multi_document_mrc.mydatasets.bert_datasets import MRCDatasetsForBERT
 from transformers import (
     RobertaConfig,
@@ -26,7 +26,6 @@ config = RobertaConfig.from_pretrained("vinai/phobert-base")
 class ViMRCDatasetsForPhoBERTNoHap(MRCDatasetsForBERT):
     use_wordsegment = True
     reader_class = SquadReader
-
 
 class ViMRCDatasetsForPhoBERT(ViMRCDatasetsForPhoBERTNoHap):
 
@@ -1114,17 +1113,6 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
 
 class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
-    # def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
-    #     super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-    #     self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    #     self.model_name_or_path = model_name_or_path
-    #     self.model = model
-    #     self.MRCModel = model.to(self.device)
-    # def __init__(self, tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer], model_name_or_path: str = None, data_args:  Optional[dataclass] = None, cache_dir: Optional[str] = None, max_seq_length: Optional[int] = None, do_train: bool = False, do_eval: bool = False, do_predict: bool = False, **kwargs):
-    #     super().__init__(tokenizer, data_args, cache_dir, max_seq_length, do_train, do_eval, do_predict, **kwargs)
-    #     self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    #     self.model_name_or_path = model_name_or_path
-    #     self.MRCModel = RobertaForMRCReflection.from_pretrained(self.model_name_or_path, config=config).to(self.device)
     def prepare_train_features(self, examples):
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
@@ -1287,62 +1275,40 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
         
         return tokenized_examples
 
-class ViMRCDatasetsV1bForPhoBERT_compare(ViMRCDatasetsForPhoBERT):
+class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
     use_wordsegment = True
-    reader_class = SquadReaderV1b
-
-    def __init__(
-        self,
-        tokenizer: Union[PreTrainedTokenizerFast, PreTrainedTokenizer],
-        data_args: Optional[dataclass] = None,
-        cache_dir: Optional[str] = None,
-        max_seq_length: Optional[int] = None,
-        do_train: bool = False,
-        do_eval: bool = False,
-        do_predict: bool = False,
-        **kwargs,
-    ):
-        super().__init__(
-            tokenizer=tokenizer,
-            data_args=data_args,
-            cache_dir=cache_dir,
-            max_seq_length=max_seq_length,
-            do_train=do_train,
-            do_eval=do_eval,
-            do_predict=do_predict,
-            **kwargs
-        )
-        if data_args is not None:
-            assert "title" in self.column_names, "Lỗi dataset không chứa cột answers"
-            self.title_column_name = "title"
+    reader_class = SquadReaderV2
 
     def prepare_train_features(self, examples):
-        prefix_contexts = [
-            f"{question} {self.tokenizer.sep_token} Tiêu_đề : {title} . Nội_dung :"
-            for question, title in zip(examples[self.question_column_name], examples[self.title_column_name])
-        ]
-        contexts = [
-            f"{prefix_s} {context}"
-            for prefix_s, context in zip(prefix_contexts, examples[self.context_column_name])
-        ]
 
+
+        print(examples)
+
+
+        # Some of the questions have lots of whitespace on the left, which is not useful and will make the
+        # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
+        # left whitespace
+        examples[self.question_column_name] = [q.lstrip() for q in examples[self.question_column_name]]
+
+        # Tokenize our examples with truncation and maybe padding, but keep the overflows using a stride. This results
+        # in one example possible giving several features when a context is long, each of those features having a
+        # context that overlaps a bit the context of the previous feature.
         tokenized_examples = self.tokenizer(
-            contexts,
-            truncation=True,
+            examples[self.question_column_name if self.pad_on_right else self.context_column_name],
+            examples[self.context_column_name if self.pad_on_right else self.question_column_name],
+            truncation="only_second",
             max_length=self.max_seq_length,
+            stride=self.data_args.doc_stride,
+            return_overflowing_tokens=True,
             return_offsets_mapping=True,
             padding="max_length" if self.data_args.pad_to_max_length else False,
         )
 
-        prefix_lens = [len(s)+1 for s in prefix_contexts]
-        prefix_ids_lens = [len(self.tokenizer.tokenize(s))+1 for s in prefix_contexts]
-        prefix_mask = [
-            [-10000] * x + [0] * (self.max_seq_length-x)
-            for x in prefix_ids_lens
-        ]
-        tokenized_examples["prefix_mask"] = prefix_mask
-        tokenized_examples["new_context"] = contexts
-
+        # Since one example might give us several features if it has a long context, we need a map from a feature to
+        # its corresponding example. This key gives us just that.
+        sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
+        # The offset mappings will give us a map from token to character position in the original context. This will
+        # help us compute the start_positions and end_positions.
         offset_mapping = tokenized_examples.pop("offset_mapping")
 
         # Let's label those examples!
@@ -1350,15 +1316,16 @@ class ViMRCDatasetsV1bForPhoBERT_compare(ViMRCDatasetsForPhoBERT):
         tokenized_examples["end_positions"] = []
         tokenized_examples["has_answer_labels"] = []
 
-        for sample_index, offsets in enumerate(offset_mapping):
+        for i, offsets in enumerate(offset_mapping):
             # We will label impossible answers with the index of the CLS token.
-            input_ids = tokenized_examples["input_ids"][sample_index]
+            input_ids = tokenized_examples["input_ids"][i]
             cls_index = input_ids.index(self.tokenizer.cls_token_id)
 
             # Grab the sequence corresponding to that example (to know what is the context and what is the question).
-            sequence_ids = tokenized_examples.sequence_ids(sample_index)
+            sequence_ids = tokenized_examples.sequence_ids(i)
 
             # One example can give several spans, this is the index of the example containing this span of text.
+            sample_index = sample_mapping[i]
             answers = examples[self.answer_column_name][sample_index]
             # If no answers are given, set the cls_index as answer.
             if len(answers["answer_start"]) == 0:
@@ -1368,17 +1335,17 @@ class ViMRCDatasetsV1bForPhoBERT_compare(ViMRCDatasetsForPhoBERT):
                 tokenized_examples["has_answer_labels"].append(0)
             else:
                 # Start/end character index of the answer in the text.
-                start_char = answers["answer_start"][0] + prefix_lens[sample_index]
+                start_char = answers["answer_start"][0]
                 end_char = start_char + len(answers["text"][0])
 
                 # Start token index of the current span in the text.
-                token_start_index = prefix_ids_lens[sample_index]
-                while sequence_ids[token_start_index] != 0:
+                token_start_index = 0
+                while sequence_ids[token_start_index] != (1 if self.pad_on_right else 0):
                     token_start_index += 1
 
                 # End token index of the current span in the text.
                 token_end_index = len(input_ids) - 1
-                while sequence_ids[token_end_index] != 0:
+                while sequence_ids[token_end_index] != (1 if self.pad_on_right else 0):
                     token_end_index -= 1
 
                 # Detect if the answer is out of the span (in which case this feature is labeled with the CLS index).
@@ -1398,276 +1365,49 @@ class ViMRCDatasetsV1bForPhoBERT_compare(ViMRCDatasetsForPhoBERT):
                     tokenized_examples["has_answer_labels"].append(1)
 
         return tokenized_examples
-
+        
     def prepare_validation_features(self, examples):
-        prefix_contexts = [
-            f"{question} {self.tokenizer.sep_token} Tiêu_đề : {title} . Nội_dung :"
-            for question, title in zip(examples[self.question_column_name], examples[self.title_column_name])
-        ]
-        contexts = [
-            f"{prefix_s} {context}"
-            for prefix_s, context in zip(prefix_contexts, examples[self.context_column_name])
-        ]
+        # Some of the questions have lots of whitespace on the left, which is not useful and will make the
+        # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
+        # left whitespace
+        examples[self.question_column_name] = [q.lstrip() for q in examples[self.question_column_name]]
 
+        # Tokenize our examples with truncation and maybe padding, but keep the overflows using a stride. This results
+        # in one example possible giving several features when a context is long, each of those features having a
+        # context that overlaps a bit the context of the previous feature.
         tokenized_examples = self.tokenizer(
-            contexts,
-            truncation=True,
+            examples[self.question_column_name if self.pad_on_right else self.context_column_name],
+            examples[self.context_column_name if self.pad_on_right else self.question_column_name],
+            truncation="only_second" if self.pad_on_right else "only_first",
             max_length=self.max_seq_length,
+            stride=self.data_args.doc_stride,
+            return_overflowing_tokens=True,
             return_offsets_mapping=True,
             padding="max_length" if self.data_args.pad_to_max_length else False,
         )
 
-        prefix_ids_lens = [len(self.tokenizer.tokenize(s))+1 for s in prefix_contexts]
-        prefix_mask = [
-            [-10000] * x + [0] * (self.max_seq_length-x)
-            for x in prefix_ids_lens
-        ]
-        tokenized_examples["prefix_mask"] = prefix_mask
-        tokenized_examples["new_context"] = contexts
-        tokenized_examples["example_id"] = examples["id"]
+        # Since one example might give us several features if it has a long context, we need a map from a feature to
+        # its corresponding example. This key gives us just that.
+        sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
+
+        # For evaluation, we will need to convert our predictions to substrings of the context, so we keep the
+        # corresponding example_id and we will store the offset mappings.
+        tokenized_examples["example_id"] = []
+
+        for i in range(len(tokenized_examples["input_ids"])):
+            # Grab the sequence corresponding to that example (to know what is the context and what is the question).
+            sequence_ids = tokenized_examples.sequence_ids(i)
+            context_index = 1 if self.pad_on_right else 0
+
+            # One example can give several spans, this is the index of the example containing this span of text.
+            sample_index = sample_mapping[i]
+            tokenized_examples["example_id"].append(examples["id"][sample_index])
+
+            # Set to None the offset_mapping that are not part of the context so it's easy to determine if a token
+            # position is part of the context or not.
+            tokenized_examples["offset_mapping"][i] = [
+                (o if sequence_ids[k] == context_index else None)
+                for k, o in enumerate(tokenized_examples["offset_mapping"][i])
+            ]
 
         return tokenized_examples
-
-    @staticmethod
-    def postprocess_qa_predictions(
-        examples,
-        features,
-        predictions: Tuple[np.ndarray, np.ndarray],
-        version_2_with_negative: bool = False,
-        n_best_size: int = 20,
-        max_answer_length: int = 30,
-        null_score_diff_threshold: float = 0.0,
-        output_dir: Optional[str] = None,
-        prefix: Optional[str] = None,
-        log_level: Optional[int] = logging.WARNING,
-    ):
-        if len(predictions) != 5:
-            raise ValueError(
-                "`predictions` should be a tuple with five elements (start_logits, end_logits, has_answer_logits, score, head_features).")
-        all_start_logits, all_end_logits, has_answer_probs, score, head_features = predictions
-        no_answer_probs = has_answer_probs[:,0]
-
-        if len(predictions[0]) != len(features):
-            raise ValueError(f"Got {len(predictions[0])} predictions and {len(features)} features.")
-
-        # The dictionaries we have to fill.
-        all_predictions = collections.OrderedDict()
-        all_nbest_json = collections.OrderedDict()
-        if version_2_with_negative:
-            scores_diff_json = collections.OrderedDict()
-
-        # Logging.
-        logger.setLevel(log_level)
-        logger.info(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
-
-        # Let's loop over all the examples!
-        for feature_index, example in enumerate(tqdm(examples)):
-            # Those are the indices of the features associated to the current example.
-
-            prelim_predictions = []
-
-            # We grab the predictions of the model for this feature.
-            start_logits = all_start_logits[feature_index]
-            end_logits = all_end_logits[feature_index]
-            na_prob = float(no_answer_probs[feature_index])
-            # This is what will allow us to map some the positions in our logits to span of texts in the original
-            # context.
-            offset_mapping = features[feature_index]["offset_mapping"]
-            # Optional `token_is_max_context`, if provided we will remove answers that do not have the maximum context
-            # available in the current feature.
-            token_is_max_context = features[feature_index].get("token_is_max_context", None)
-
-            # null prediction.
-            null_prediction = {
-                "offsets": (0, 0),
-                "score": start_logits[0] + end_logits[0],
-                "start_logit": start_logits[0],
-                "end_logit": end_logits[0],
-                "na_prob": na_prob,
-            }
-
-            # Go through all possibilities for the `n_best_size` greater start and end logits.
-            start_indexes = np.argsort(start_logits)[-1: -n_best_size - 1: -1].tolist()
-            end_indexes = np.argsort(end_logits)[-1: -n_best_size - 1: -1].tolist()
-            for start_index in start_indexes:
-                for end_index in end_indexes:
-                    # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
-                    # to part of the input_ids that are not in the context.
-                    if (
-                        start_index >= len(offset_mapping)
-                        or end_index >= len(offset_mapping)
-                    ):
-                        continue
-                    # Don't consider answers with a length that is either < 0 or > max_answer_length.
-                    if end_index < start_index or end_index - start_index + 1 > max_answer_length:
-                        continue
-                    # Don't consider answer that don't have the maximum context available (if such information is
-                    # provided).
-                    if token_is_max_context is not None and not token_is_max_context.get(str(start_index), False):
-                        continue
-
-                    prelim_predictions.append(
-                        {
-                            "offsets": (offset_mapping[start_index][0], offset_mapping[end_index][1]),
-                            "score": start_logits[start_index] + end_logits[end_index],
-                            "start_logit": start_logits[start_index],
-                            "end_logit": end_logits[end_index],
-                            "na_prob": na_prob,
-                        }
-                    )
-
-            if version_2_with_negative:
-                # Add the minimum null prediction
-                prelim_predictions.append(null_prediction)
-                null_score = null_prediction["score"]
-
-            # Only keep the best `n_best_size` predictions.
-            predictions = sorted(prelim_predictions, key=lambda x: x["score"], reverse=True)[:n_best_size]
-
-            # Add back the minimum null prediction if it was removed because of its low score.
-            if (
-                version_2_with_negative
-                and not any(p["offsets"] == (0, 0) for p in predictions)
-            ):
-                predictions.append(null_prediction)
-
-            # Use the offsets to gather the answer text in the original context.
-            context = features[feature_index]["new_context"]
-            for pred in predictions:
-                offsets = pred.pop("offsets")
-                pred["text"] = context[offsets[0]: offsets[1]]
-
-            # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
-            # failure.
-            if len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == ""):
-                predictions.insert(0, {"text": "empty", "start_logit": 0.0,
-                                   "end_logit": 0.0, "score": 0.0, "na_prob": 0.0})
-
-            # Compute the softmax of all scores (we do it with numpy to stay independent from torch/tf in this file, using
-            # the LogSumExp trick).
-            scores = np.array([pred.pop("score") for pred in predictions])
-            exp_scores = np.exp(scores - np.max(scores))
-            probs = exp_scores / exp_scores.sum()
-
-            # Include the probabilities in our predictions.
-            for prob, pred in zip(probs, predictions):
-                pred["probability"] = prob
-
-            # Pick the best prediction. If the null answer is not possible, this is easy.
-            if not version_2_with_negative:
-                all_predictions[example["id"]] = predictions[0]["text"]
-            else:
-                NO_ANSWER_THRESHOLD = 0.5
-                predictions = [p for p in predictions if p["na_prob"] < NO_ANSWER_THRESHOLD or p["text"] == ""]
-                # Otherwise we first need to find the best non-empty prediction.
-                for i in range(len(predictions)):
-                    if predictions[i]["text"] != "":
-                        break
-                best_non_null_pred = predictions[i]
-
-                # Then we compare to the null prediction using the threshold.
-                score_diff = null_score - best_non_null_pred["start_logit"] - best_non_null_pred["end_logit"]
-                scores_diff_json[example["id"]] = float(score_diff)  # To be JSON-serializable.
-                if score_diff > null_score_diff_threshold:
-                    all_predictions[example["id"]] = {"text": "", "na_prob": 1.0}
-                else:
-                    all_predictions[example["id"]] = {
-                        "text": best_non_null_pred["text"],
-                        "na_prob": best_non_null_pred["na_prob"]
-                    }
-
-            # Make `predictions` JSON-serializable by casting np.float back to float.
-            all_nbest_json[example["id"]] = [
-                {k: (float(v) if isinstance(v, (np.float16, np.float32, np.float64)) else v) for k, v in pred.items()}
-                for pred in predictions
-            ]
-
-        # If we have an output_dir, let's save all those dicts.
-        if output_dir is not None:
-            if not os.path.isdir(output_dir):
-                raise EnvironmentError(f"{output_dir} is not a directory.")
-
-            prediction_file = os.path.join(
-                output_dir, "predictions.json" if prefix is None else f"{prefix}_predictions.json"
-            )
-            nbest_file = os.path.join(
-                output_dir, "nbest_predictions.json" if prefix is None else f"{prefix}_nbest_predictions.json"
-            )
-            if version_2_with_negative:
-                null_odds_file = os.path.join(
-                    output_dir, "null_odds.json" if prefix is None else f"{prefix}_null_odds.json"
-                )
-
-            logger.info(f"Saving predictions to {prediction_file}.")
-            with open(prediction_file, "w") as writer:
-                writer.write(json.dumps(all_predictions, indent=4) + "\n")
-            logger.info(f"Saving nbest_preds to {nbest_file}.")
-            with open(nbest_file, "w") as writer:
-                writer.write(json.dumps(all_nbest_json, indent=4) + "\n")
-            if version_2_with_negative:
-                logger.info(f"Saving null_odds to {null_odds_file}.")
-                with open(null_odds_file, "w") as writer:
-                    writer.write(json.dumps(scores_diff_json, indent=4) + "\n")
-
-        return all_predictions
-
-    def batch_get_inputs_for_generation(
-        self,
-        questions: List[str],
-        contexts: List[List[dict]],
-    ) -> List:
-        """Chuyển đổi raw inputs thành tensor inputs cho model."""
-        def _get_prefix_context(question: str, title: str):
-            if title != "":
-                return f"{question} {self.tokenizer.sep_token} Tiêu_đề : {title} . Nội_dung :"
-            else:
-                return f"{question} {self.tokenizer.sep_token}"
-
-        def _concat_title_context(question: str, passage_item: dict) -> str:
-            content = passage_item.get("passage_content")
-            title = passage_item.get("passage_title")
-            prefix_s = _get_prefix_context(question, title)
-            return (f"{prefix_s} {content}", prefix_s)
-
-        contexts = [
-            [_concat_title_context(question, passage_item) for passage_item in subcontexts]
-            for question, subcontexts in zip(questions, contexts)
-        ]
-
-        flatten_contexts = []
-        prefix_lens = []
-        context_idx = 0
-        context_map = {
-            "contexts": {},
-            "n_sample": len(contexts),
-        }
-        for sample_idx, subcontexts in enumerate(contexts):
-            for context, prefix_s in subcontexts:
-                context_map["contexts"][context_idx] = {
-                    "text": context,
-                    "sample": sample_idx
-                }
-                flatten_contexts.append(context)
-                prefix_lens.append(len(self.tokenizer.tokenize(prefix_s))+1)
-                context_idx += 1
-
-        inputs = self.tokenizer(
-            flatten_contexts,
-            truncation=True,
-            padding="max_length",
-            max_length=self.max_seq_length,
-            return_offsets_mapping=True,
-            return_tensors="pt"
-        )
-
-        offset_mapping = inputs.pop("offset_mapping")
-        context_map["non_context_mask"] = np.array([
-            [
-                -10000.0 if (x is None or i < pl) else 0.0
-                for i, x in enumerate(inputs.sequence_ids(sample_idx))
-            ]
-            for sample_idx, pl in enumerate(prefix_lens)
-        ])
-        context_map["offset_mapping"] = offset_mapping.detach().cpu().numpy()
-
-        return inputs, context_map

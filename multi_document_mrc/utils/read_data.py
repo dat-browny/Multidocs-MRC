@@ -319,3 +319,200 @@ class SquadReaderV1b(SquadReader):
             except:
                 new_data += []
         return new_data
+
+
+class SquadReaderV2():
+    def __init__(self, use_wordsegment: bool = False, max_seq_length: int = 256):
+        self.use_wordsegment = use_wordsegment
+        self.max_seq_length = max_seq_length
+
+    def load_datasets(self, data_files: Dict[(str, str)]) -> DatasetDict:
+        datasets = DatasetDict()
+        for key, data_file_path in data_files.items():
+            if os.path.isfile(data_file_path):
+                data = self._read(data_file_path)
+                datasets[key] = Dataset.from_pandas(pd.DataFrame(data))
+        return datasets
+
+    def _read(self, data_file_path: str) -> List[dict]:
+        print(f"Đọc file dữ liệu: {data_file_path}")
+        raw_data = self._read_squad_format(data_file_path)
+        for sample in raw_data:
+            for qa in sample["qas"]:
+                self._redefine_answer_char_start(sample["context"], qa)
+            sample["qas"] = [qa for qa in sample["qas"] if self._check_true_index_answer(sample["context"], qa)]
+
+        data = [self.tokenize_and_convert_sample(sample) for sample in tqdm.tqdm(raw_data)]
+        dict_data = self.convert_dict_data(data)
+
+        print("     - Total qa: " + str(len(dict_data["id"])))
+        print("     - Negative qa: "+str(len([x for x in dict_data["answers"] if len(x["text"]) == 0])))
+        return dict_data
+
+    @staticmethod
+    def convert_dict_data(data):
+        dict_data = {
+            "id": [],
+            "title": [],
+            "context": [],
+            "question": [],
+            "answers": [],
+            "plausible_answers": []
+        }
+        idx = 0
+        for sample in data:
+            for qa in sample["qas"]:
+                dict_data["title"].append(sample["title"])
+                dict_data["context"].append(sample["context"])
+                dict_data["question"].append(qa["question"])
+                if not qa["is_positive"]:
+                    dict_data["answers"].append({
+                        "text": [],
+                        "answer_start": []
+                    })
+                    dict_data["plausible_answers"].append({
+                        "text": [plausible_answer["text"] for plausible_answer in qa["plausible_answers"]],
+                        "answer_start": [plausible_answer["answer_start"] for plausible_answer in qa["plausible_answers"]]
+                    })
+                else:
+                    dict_data["answers"].append({
+                        "text": [answer["text"] for answer in qa["answers"]],
+                        "answer_start": [answer["answer_start"] for answer in qa["answers"]],
+                    })
+                    dict_data["plausible_answers"].append({
+                        "text": [],
+                        "answer_start": []
+                    })
+                dict_data["id"].append(f"squad-{idx}")
+                idx += 1
+        return dict_data
+
+    @staticmethod
+    def _check_true_index_answer(context: str, qa: dict) -> bool:
+        if not qa["is_positive"]:
+            for i, answer in enumerate(qa["plausible_answers"]):
+                if answer["text"] == context[answer["answer_start"]:answer["answer_start"]+len(answer["text"])]:
+                    continue
+                else:
+                    qa["answers"][i] = None
+        else:
+            for i, answer in enumerate(qa["answers"]):
+                if answer["text"] == context[answer["answer_start"]:answer["answer_start"]+len(answer["text"])]:
+                    continue
+                else:
+                    qa["answers"][i] = None
+        qa["answers"] = [answer for answer in qa["answers"] if answer is not None]
+
+        if len(qa["answers"]) == 0:
+            return False
+        else:
+            return True
+
+    def _preprocess_text(self, text: str) -> str:
+        """Tiền xử lý dữ liệu text."""
+        text = text.replace("–", "-")
+        if self.use_wordsegment:
+            return normalize(ViTokenizer.tokenize(text))
+        else:
+            return text
+            # return normalize(sylabelize(text))
+
+    @staticmethod
+    def _read_squad_format(data_file_path: str) -> List[dict]:
+        with open(data_file_path, "r") as file:
+            raw_data = json.load(file)["data"]
+        data = []
+        for page in raw_data:
+            for paragraph in page["paragraphs"]:
+                context = paragraph["context"]
+                qas = [
+                    {
+                        "question": qa["question"],
+                        "answers": [] if qa.get("is_impossible", False) else qa["answers"],
+                        "is_positive": not qa.get("is_impossible", False),
+                        "id": qa["id"],
+                        "plausible_answers": qa["plausible_answers"] if qa.get("is_impossible", False) else []
+                    }
+                    for qa in paragraph["qas"]
+                ]
+                data.append({
+                    "title": page["title"],
+                    "context": context,
+                    "qas": qas
+                })
+        return data
+
+    @staticmethod
+    def _redefine_answer_char_start(context: str, qa: dict) -> dict:
+        """Xác định lại answert start.
+
+        Args:
+            context (str): Đoạn context chứa câu trả lời
+            qa (dict): Dict chứa câu hỏi và câu trả lời
+        """
+        context2 = context.replace("_", " ")
+        if not qa["is_positive"]:
+            for answer in qa["plausible_answers"]:
+                answer_text = answer["text"].replace("_", " ")
+
+                len_answer = len(answer_text)
+                start = answer["answer_start"]
+
+                if context2[start:start+len_answer] == answer_text:
+                    answer["text"] = context[start:start+len_answer].strip()
+                    continue
+
+                for i in range(max(start-20, 0), start+20):
+                    if context2[i:i+len_answer] == answer_text:
+                        answer["answer_start"] = i
+                        answer["text"] = context[i:i+len_answer].strip()
+                        break           
+        else:                
+            for answer in qa["answers"]:
+                answer_text = answer["text"].replace("_", " ")
+
+                len_answer = len(answer_text)
+                start = answer["answer_start"]
+
+                if context2[start:start+len_answer] == answer_text:
+                    answer["text"] = context[start:start+len_answer].strip()
+                    continue
+
+                for i in range(max(start-20, 0), start+20):
+                    if context2[i:i+len_answer] == answer_text:
+                        answer["answer_start"] = i
+                        answer["text"] = context[i:i+len_answer].strip()
+                        break
+        return
+
+    def tokenize_and_convert_sample(self, sample: dict) -> dict:
+        title = self._preprocess_text(sample["title"])
+        context = sample["context"]
+        # negative_qas = [qa for qa in sample["qas"] if not qa["is_positive"]]
+        qas = [qa for qa in sample["qas"]]
+
+        # Word segment context và map lại index của câu trả lời với context mới
+        new_context = self._preprocess_text(context)
+        try:
+            mapidx = MapNewIndex(context, new_context)
+
+            for qa in qas:
+                qa["question"] = self._preprocess_text(qa["question"])
+                for answer in qa["answers"]:
+                    answer["text"] = self._preprocess_text(answer["text"])
+                    answer["answer_start"] = mapidx.map_new_char_index(answer["answer_start"])
+                self._redefine_answer_char_start(new_context, qa)
+
+            qas = [qa for qa in qas if self._check_true_index_answer(new_context, qa)]
+
+            return {
+                "title": title,
+                "context": new_context,
+                "qas": qas
+            }
+        except:
+            return {
+                "title": title,
+                "context": new_context,
+                "qas": []
+            }
