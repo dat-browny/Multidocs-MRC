@@ -1277,14 +1277,9 @@ class ViMRCReflection(ViMRCDatasetsForPhoBERTNoHap):
 
 class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
     use_wordsegment = True
-    reader_class = SquadReaderV2
+    reader_class = SquadReader
 
     def prepare_train_features(self, examples):
-
-
-        print(examples)
-
-
         # Some of the questions have lots of whitespace on the left, which is not useful and will make the
         # truncation of the context fail (the tokenized question will take a lots of space). So we remove that
         # left whitespace
