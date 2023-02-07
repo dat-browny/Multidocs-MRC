@@ -163,7 +163,8 @@ def main():
     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
         main_process_first=training_args.main_process_first
     )
-    print(train_dataset['has_answer_labels'].count(1))
-
+    print(train_examples[:100])
+    print("==============================================")
+    print(eval_examples[:100])
 if __name__ == "__main__":
     main()
