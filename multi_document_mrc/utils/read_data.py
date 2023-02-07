@@ -343,10 +343,13 @@ class SquadReaderV2():
             sample["qas"] = [qa for qa in sample["qas"] if self._check_true_index_answer(sample["context"], qa)]
 
         data = [self.tokenize_and_convert_sample(sample) for sample in tqdm.tqdm(raw_data)]
+        print(data[:20])
         dict_data = self.convert_dict_data(data)
 
         print("     - Total qa: " + str(len(dict_data["id"])))
         print("     - Negative qa: "+str(len([x for x in dict_data["answers"] if len(x["text"]) == 0])))
+
+        
         return dict_data
 
     @staticmethod
