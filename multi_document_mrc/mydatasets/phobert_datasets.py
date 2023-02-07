@@ -1326,6 +1326,7 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
             answers = examples[self.answer_column_name][sample_index]
             possibility = examples["is_impossible"][sample_index]
             if possibility == True:
+                print(examples['plausible_answers'][sample_index]['text'])
                 plausible_token = self.tokenizer.encode([examples['plausible_answers'][sample_index]['text']])
                 input_ids[-len(plausible_token)+1:] = plausible_token[1:]
                 tokenized_examples["has_answer_labels"].append(0)
