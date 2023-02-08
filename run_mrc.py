@@ -202,7 +202,6 @@ def main():
                 batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
                 na_prob += batch_na_probs
 
-            na_prob = [0 if token[0] == 1 else 1 for token in predict_data['ans_type_ids']]
             for id, prob in enumerate(na_prob):
                 if prob > 0.5:
                     formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
