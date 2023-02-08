@@ -204,10 +204,10 @@ def main():
 
             na_prob = [0 if token[0] == 1 else 1 for token in predict_data['ans_type_ids']]
             for id, prob in enumerate(na_prob):
-                if prob > 0.5:
-                    formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": 1-prob})
+                if 1-prob > 0.5:
+                    formated_prediction.append({"id": ids[id], "prediction_text": text[id], "no_answer_probability": prob})
                 else: 
-                    formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": 1-prob})
+                    formated_prediction.append({"id": ids[id], "prediction_text": "", "no_answer_probability": prob})
             p.label_ids = sorted(p.label_ids,key=lambda x: x['id'])
             formated_prediction = sorted(formated_prediction, key=lambda x: x['id'])
             # predict_label = []
