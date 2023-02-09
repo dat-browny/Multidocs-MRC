@@ -1352,6 +1352,7 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                 if len(answers["answer_start"]) == 0:
                     # has_answer_labels==0 tương ứng với câu hỏi không có câu trả lời, ngược lại
                     input_ids = self.random_token(input_ids=input_ids, sep_index=sep_index, pad_index=pad_index)
+                    assert len(input_ids) == self.max_seq_length
                     tokenized_examples["has_answer_labels"].append(0)
                 else:
                     # Start/end character index of the answer in the text.
@@ -1378,7 +1379,8 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                         answer_token = self.tokenizer.encode(answers['text'][0])
                         input_ids[-len(answer_token)+1:] = answer_token[1:]
                         tokenized_examples["has_answer_labels"].append(1)
-                assert len(input_ids) == self.max_seq_length
+                    assert len(input_ids) == self.max_seq_length
+                
         return tokenized_examples
         
     def prepare_validation_features(self, examples):
