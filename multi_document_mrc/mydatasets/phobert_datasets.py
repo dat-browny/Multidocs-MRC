@@ -1346,10 +1346,12 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                 plausible_answers = examples['plausible_answers'][sample_index]['text'][0]
                 plausible_token = self.tokenizer.encode(plausible_answers)
                 if pad_index is None:
-                    input_ids[-len(plausible_token)+1:] = plausible_token[1:]
+                    input_ids[-len(plausible_token):] = plausible_token
                 else:
-                    pad_index = input_ids.index(pad_id)
-                    input_ids[pad_index:pad_index+len(plausible_token)-1] = plausible_token[1:]
+                    if self.max_seq_length - len(plausible_token) > pad_index:
+                        input_ids[pad_index:pad_index+len(plausible_token)] = plausible_token
+                    else:
+                        input_ids[-len(plausible_token):] = plausible_token
                 tokenized_examples["labels"].append(0)
             else:
                 # If no answers are given, set the cls_index as answer.
