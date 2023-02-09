@@ -39,13 +39,25 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name
 
     tokenized_data_dict = tokenized_data.to_dict()
 
-    print(tokenized_data)
-    
+    no_ans_data = {
+        "input_ids": [],
+        "attention_mask": [],
+        "offset_mapping": []
+    }
+
+    for id, labels in enumerate(tokenized_data_dict['has_answer_labels']):
+        if labels == 0:
+            no_ans_data['input_ids'].append(tokenized_data_dict['input_ids'][id])
+            no_ans_data["attention_mask"].append(tokenized_data_dict["attention_mask"][id])
+            no_ans_data["offset_mapping"].append(tokenized_data_dict["offset_mapping"][id])
+
+
     tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'start_positions', 'end_positions', 'has_answer_labels'])
-    predictions = trainer.inference(dataset=tokenized_data)
+    predictions = trainer.inference(dataset=trainer.get_eval_dataloader(tokenized_data))
 
-
-
+    for key, value in predictions.items():
+        if value["text"] != "":
+            print(value["text"])
     # features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
     #                 batched=True,
     #                 remove_columns=examples.features)
