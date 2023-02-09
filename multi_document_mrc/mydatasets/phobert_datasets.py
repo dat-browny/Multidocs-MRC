@@ -1417,22 +1417,48 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
 
         # For evaluation, we will need to convert our predictions to substrings of the context, so we keep the
         # corresponding example_id and we will store the offset mappings.
-        tokenized_examples["example_id"] = []
-        assert len(tokenized_examples["input_ids"]) == len(examples["is_impossible"])
-        # for i in range(len(tokenized_examples["input_ids"])):
-        #     # Grab the sequence corresponding to that example (to know what is the context and what is the question).
-        #     sequence_ids = tokenized_examples.sequence_ids(i)
-        #     context_index = 1 if self.pad_on_right else 0
 
-        #     # One example can give several spans, this is the index of the example containing this span of text.
-        #     sample_index = sample_mapping[i]
-        #     tokenized_examples["example_id"].append(examples["id"][sample_index])
+        for i, input_ids in enumerate(tokenized_examples["input_ids"]):
+            # Grab the sequence corresponding to that example (to know what is the context and what is the question).
+            # sequence_ids = tokenized_examples.sequence_ids(i)
+            # context_index = 1 if self.pad_on_right else 0
 
-        #     # Set to None the offset_mapping that are not part of the context so it's easy to determine if a token
-        #     # position is part of the context or not.
-        #     tokenized_examples["offset_mapping"][i] = [
-        #         (o if sequence_ids[k] == context_index else None)
-        #         for k, o in enumerate(tokenized_examples["offset_mapping"][i])
+            # # One example can give several spans, this is the index of the example containing this span of text.
+            # sample_index = sample_mapping[i]
+            # tokenized_examples["example_id"].append(examples["id"][sample_index])
+
+            # # Set to None the offset_mapping that are not part of the context so it's easy to determine if a token
+            # # position is part of the context or not.
+            # tokenized_examples["offset_mapping"][i] = [
+            #     (o if sequence_ids[k] == context_index else None)
+            #     for k, o in enumerate(tokenized_examples["offset_mapping"][i])
             # ]
+            sep_id = self.tokenizer.sep_token_id
+            pad_id = self.tokenizer.pad_token_id
 
+            pad_index = None if pad_id not in input_ids else input_ids.index(pad_id)
+
+            if examples['is_impossible'][i]:
+                plausible_token = self.tokenizer.encode(examples['plausible_answers'][i]['text'])
+                plausible_token[0] = sep_id
+                if pad_index is None:
+                    input_ids[-len(plausible_token):] = plausible_token
+                else:
+                    if self.max_seq_length - len(plausible_token) > pad_index:
+                        input_ids[pad_index:pad_index+len(plausible_token)] = plausible_token
+                    else:
+                        input_ids[-len(plausible_token):] = plausible_token
+            else:
+                list_ans = examples['answers'][i]['text']
+                answer_length = [len(ans.split()) for ans in list_ans]
+                min_answers = list_ans[np.argmin(answer_length)]
+                answer_token = self.tokenizer.encode(min_answers)
+                answer_token[0] = sep_id
+                if pad_index is None:
+                    input_ids[-len(answer_token):] = answer_token
+                else:
+                    if self.max_seq_length - len(answer_token) > pad_index:
+                        input_ids[pad_index:pad_index+len(answer_token)] = answer_token
+                    else:
+                        input_ids[-len(answer_token):] = answer_token
         return tokenized_examples
