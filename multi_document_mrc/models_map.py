@@ -16,6 +16,7 @@ from multi_document_mrc.models.roberta_mrc import (
     RobertaForMRC
 )
 from multi_document_mrc.models.reflection_roberta_mrc import (
+    RobertaForMRCClassification,
     RobertaForMRCReflection,
     ReflectionModel
 )
@@ -95,7 +96,7 @@ MODELS_MAP = {
         description="Phobert Question Answering model, to classify what is no answer"
     ),
     "phobert-qa-classification-block": VersionClassesMap(
-        model_class=ReflectionModel,
+        model_class=RobertaForMRCClassification,
         dataset_class=ViMRCDatasetsForPhoBERT_classification,
         config_class=RobertaConfig,
         tokenizer_class=PhobertTokenizerFast,
