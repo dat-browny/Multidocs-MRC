@@ -178,7 +178,7 @@ def main():
 
     def compute_metrics(p: EvalPrediction):
         p.predictions = [np.argmax(pred) for pred in p.predictions]
-        return metric.compute(p.predictions, p.label_ids)
+        return metric.compute(predictions=p.predictions, references=p.label_ids)
 
     trainer = Trainer(
         model=model,
