@@ -166,7 +166,13 @@ def main():
     # Build trainer
     # recreate preprocess evaluate
 
-    
+    data_collator = (
+        default_data_collator
+        if data_args.pad_to_max_length
+        else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
+    )
+
+    metric = evaluate.load("f1")
 
 
 if __name__ == "__main__":
