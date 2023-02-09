@@ -439,6 +439,9 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
 
         self.dropout = nn.Dropout(classifier_dropout)
         self.classifier = nn.Linear(config.hidden_size, config.num_labels)
+        print("===================================================================================================")
+        print(config.num_labels)
+        print("===================================================================================================")
         self.post_init()
 
     def forward(
