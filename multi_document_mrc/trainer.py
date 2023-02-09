@@ -263,3 +263,6 @@ class ReflectionTrainer(Trainer):
                 metrics[f"{metric_key_prefix}_{key}"] = metrics.pop(key)
         metrics.update(output.metrics)
         return PredictionOutput(predictions=predictions.predictions, label_ids=predictions.label_ids, metrics=metrics)
+
+# class ClassificationTrainer(Trainer):
+    
