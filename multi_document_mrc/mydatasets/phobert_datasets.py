@@ -1289,7 +1289,11 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
         else:
             start_token = random.randint(sep_index, pad_index-num_token-1)
             random_token =  input_ids[start_token:start_token+num_token] + [self.tokenizer.sep_token_id]
-            input_ids[pad_index:pad_index+len(random_token)] = random_token
+            if pad_index+len(random_token) <= self.max_seq_length:
+                input_ids[pad_index:pad_index+len(random_token)] = random_token
+            else:
+                random_token = [self.tokenizer.sep_token_id] + random_token
+                input_ids[-len(random_token):] = random_token
         return input_ids
 
     def prepare_train_features(self, examples):
