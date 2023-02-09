@@ -1373,13 +1373,14 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                     if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
                         input_ids = self.random_token(input_ids=input_ids, sep_index=sep_index, pad_index=pad_index)
                         tokenized_examples["has_answer_labels"].append(0)
+                        assert len(input_ids) == self.max_seq_length
                     else:
                         # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
                         # Note: we could go after the last offset if the answer is the last word (edge case).
                         answer_token = self.tokenizer.encode(answers['text'][0])
                         input_ids[-len(answer_token)+1:] = answer_token[1:]
                         tokenized_examples["has_answer_labels"].append(1)
-                    assert len(input_ids) == self.max_seq_length
+                        assert len(input_ids) == self.max_seq_length
                 
         return tokenized_examples
         
