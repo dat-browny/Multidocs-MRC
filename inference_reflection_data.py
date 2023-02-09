@@ -1,4 +1,3 @@
-from sklearn.metrics import classification_report
 from transformers import (
     RobertaConfig,
     HfArgumentParser,
@@ -9,23 +8,19 @@ from transformers import (
 from multi_document_mrc.mydatasets.phobert_datasets import (
     ViMRCReflection
 )
-from torch.utils.data import DataLoader
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
 from multi_document_mrc.models.reflection_roberta_mrc import RobertaForMRCReflection
 from multi_document_mrc.mydatasets.phobert_datasets import ViMRCDatasetsForPhoBERT, ViMRCDatasetsForPhoBERTNoHapReflection
 import os
 import sys
-import torch
 import logging
 import transformers
 import datasets
 from tqdm import tqdm
 import json
-import evaluate
 from transformers import (
     DataCollatorWithPadding,
-    EvalPrediction,
     HfArgumentParser,
     PreTrainedTokenizerFast,
     TrainingArguments,
@@ -33,8 +28,6 @@ from transformers import (
     set_seed,
 )
 
-from transformers.trainer_utils import get_last_checkpoint
-from transformers.utils.versions import require_version
 from multi_document_mrc.arguments import ModelArguments, DataTrainingArguments
 from multi_document_mrc.models_map import get_model_version_classes
 from multi_document_mrc.trainer import QuestionAnsweringTrainer
@@ -45,51 +38,56 @@ logger = logging.getLogger(__name__)
 def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name_or_path, max_seq_length):
 
     tokenized_data_dict = tokenized_data.to_dict()
+
+    print(tokenized_data)
+    
     tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'start_positions', 'end_positions', 'has_answer_labels'])
     predictions = trainer.inference(dataset=tokenized_data)
 
-    features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
-                    batched=True,
-                    remove_columns=examples.features)
 
-    instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(tokenizer, model_name_or_path=model_name_or_path).postprocess_qa_predictions(examples=examples, 
-                    features=features, 
-                    predictions=predictions,
-                    version_2_with_negative=True,
-                    is_training_reflection=True)
 
-    start_positions = [value['start_positions'] for key, value in instance_training.items()]
-    end_positions = [value['end_positions'] for key, value in instance_training.items()]
-    head_features = [value['head_features'] for key, value in instance_training.items()]
-    feature_index = [value['feature_index'] for key, value in instance_training.items()]
-    na_probs = [value['na_probs'] for key, value in instance_training.items()]
+    # features = examples.map(ViMRCDatasetsForPhoBERT(tokenizer).prepare_validation_features_reflection,
+    #                 batched=True,
+    #                 remove_columns=examples.features)
 
-    tokenized_examples_ = {}
-    tokenized_examples_['input_ids'] = []
-    tokenized_examples_['ans_type_ids'] = []
-    tokenized_examples_['has_answer_labels'] = []
-    tokenized_examples_['attention_mask'] = []
-    tokenized_examples_['head_features'] = []
+    # instance_training = ViMRCDatasetsForPhoBERTNoHapReflection(tokenizer, model_name_or_path=model_name_or_path).postprocess_qa_predictions(examples=examples, 
+    #                 features=features, 
+    #                 predictions=predictions,
+    #                 version_2_with_negative=True,
+    #                 is_training_reflection=True)
 
-    for id, feature_slice in tqdm(enumerate(feature_index)):
-        tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice])
-        tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice])
-        tokenized_examples_['attention_mask'].append(tokenized_data_dict['attention_mask'][feature_slice])
-        tokenized_examples_['head_features'].append(head_features[id].tolist())
-        start_position = start_positions[id]
-        end_position = end_positions[id]
-        ans_type_id = [0]* max_seq_length
-        if na_probs[id] > 0.5 and start_position < end_position:
-            ans_type_id[0] = 2
-        else:
-            ans_type_id[0] = 1
-        if start_position < end_position:
-            ans_type_id[start_position] = 3
-            for i in range(start_position+1, end_position+1):
-                ans_type_id[i] = 4
-        tokenized_examples_['ans_type_ids'].append(ans_type_id)
+    # start_positions = [value['start_positions'] for key, value in instance_training.items()]
+    # end_positions = [value['end_positions'] for key, value in instance_training.items()]
+    # head_features = [value['head_features'] for key, value in instance_training.items()]
+    # feature_index = [value['feature_index'] for key, value in instance_training.items()]
+    # na_probs = [value['na_probs'] for key, value in instance_training.items()]
 
-    return tokenized_examples_
+    # tokenized_examples_ = {}
+    # tokenized_examples_['input_ids'] = []
+    # tokenized_examples_['ans_type_ids'] = []
+    # tokenized_examples_['has_answer_labels'] = []
+    # tokenized_examples_['attention_mask'] = []
+    # tokenized_examples_['head_features'] = []
+
+    # for id, feature_slice in tqdm(enumerate(feature_index)):
+    #     tokenized_examples_['input_ids'].append(tokenized_data_dict['input_ids'][feature_slice])
+    #     tokenized_examples_['has_answer_labels'].append(tokenized_data_dict['has_answer_labels'][feature_slice])
+    #     tokenized_examples_['attention_mask'].append(tokenized_data_dict['attention_mask'][feature_slice])
+    #     tokenized_examples_['head_features'].append(head_features[id].tolist())
+    #     start_position = start_positions[id]
+    #     end_position = end_positions[id]
+    #     ans_type_id = [0]* max_seq_length
+    #     if na_probs[id] > 0.5 and start_position < end_position:
+    #         ans_type_id[0] = 2
+    #     else:
+    #         ans_type_id[0] = 1
+    #     if start_position < end_position:
+    #         ans_type_id[start_position] = 3
+    #         for i in range(start_position+1, end_position+1):
+    #             ans_type_id[i] = 4
+    #     tokenized_examples_['ans_type_ids'].append(ans_type_id)
+
+    # return tokenized_examples_
         
 def main():
     # See all possible arguments in src/transformers/training_args.py
