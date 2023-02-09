@@ -1461,4 +1461,5 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                         input_ids[pad_index:pad_index+len(answer_token)] = answer_token
                     else:
                         input_ids[-len(answer_token):] = answer_token
+            assert len(input_ids) == self.max_seq_length
         return tokenized_examples
