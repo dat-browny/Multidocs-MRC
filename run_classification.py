@@ -24,7 +24,7 @@ import sys
 import datasets
 import evaluate
 import transformers
-import torch
+import numpy as np
 from multi_document_mrc.models.reflection_roberta_mrc import ReflectionModel
 from multi_document_mrc.trainer import QuestionAnsweringTrainer
 from transformers import (
@@ -177,9 +177,7 @@ def main():
     metric = evaluate.load("f1")    
 
     def compute_metrics(p: EvalPrediction):
-        print(p.predictions.shape)
-        print("==============================================================================================")
-        print(p.label_ids)
+        p.predictions = [np.argmax(pred) for pred in p.predictions]
         return metric.compute(p.predictions, p.label_ids)
 
     trainer = Trainer(
