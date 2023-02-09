@@ -1439,7 +1439,7 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
             pad_index = None if pad_id not in input_ids else input_ids.index(pad_id)
 
             if examples['is_impossible'][i]:
-                plausible_token = self.tokenizer.encode(examples['plausible_answers'][i]['text'])
+                plausible_token = self.tokenizer.encode(examples['plausible_answers'][i]['text'][0])
                 plausible_token[0] = sep_id
                 if pad_index is None:
                     input_ids[-len(plausible_token):] = plausible_token
