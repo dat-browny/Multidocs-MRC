@@ -177,6 +177,9 @@ def main():
     metric = evaluate.load("f1")    
 
     def compute_metrics(p: EvalPrediction):
+        print(p.predictions)
+        print("==============================================================================================")
+        print(p.label_ids)
         return metric.compute(p.predictions, p.label_ids)
 
     trainer = Trainer(
