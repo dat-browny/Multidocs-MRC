@@ -1396,8 +1396,6 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
             truncation="only_second" if self.pad_on_right else "only_first",
             max_length=self.max_seq_length,
             stride=self.data_args.doc_stride,
-            return_overflowing_tokens=True,
-            return_offsets_mapping=True,
             padding="max_length" if self.data_args.pad_to_max_length else False,
         )
 
@@ -1408,7 +1406,7 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
         # For evaluation, we will need to convert our predictions to substrings of the context, so we keep the
         # corresponding example_id and we will store the offset mappings.
         tokenized_examples["example_id"] = []
-
+        assert len(tokenized_examples["input_ids"]) == len(examples["is_impossible"])
         for i in range(len(tokenized_examples["input_ids"])):
             # Grab the sequence corresponding to that example (to know what is the context and what is the question).
             sequence_ids = tokenized_examples.sequence_ids(i)
