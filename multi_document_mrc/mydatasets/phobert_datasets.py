@@ -1325,7 +1325,7 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
         offset_mapping = tokenized_examples.pop("offset_mapping")
 
         # Let's label those examples!
-        tokenized_examples["has_answer_labels"] = []
+        tokenized_examples["labels"] = []
 
         for i, offsets in enumerate(offset_mapping):
             # We will label impossible answers with the index of the CLS token.
@@ -1350,14 +1350,14 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                 else:
                     pad_index = input_ids.index(pad_id)
                     input_ids[pad_index:pad_index+len(plausible_token)-1] = plausible_token[1:]
-                tokenized_examples["has_answer_labels"].append(0)
+                tokenized_examples["labels"].append(0)
             else:
                 # If no answers are given, set the cls_index as answer.
                 if len(answers["answer_start"]) == 0:
                     # has_answer_labels==0 tương ứng với câu hỏi không có câu trả lời, ngược lại
                     input_ids = self.random_token(input_ids=input_ids, sep_index=sep_index, pad_index=pad_index)
                     assert len(input_ids) == self.max_seq_length
-                    tokenized_examples["has_answer_labels"].append(0)
+                    tokenized_examples["labels"].append(0)
                 else:
                     # Start/end character index of the answer in the text.
                     start_char = answers["answer_start"][0]
@@ -1375,21 +1375,14 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
 
                     # Detect if the answer is out of the span (in which case this feature is labeled with the CLS index).
                     if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
-                        input_ids = self.random_token(input_ids=input_ids, sep_index=sep_index, pad_index=pad_index)
-                        
-                        tokenized_examples["has_answer_labels"].append(0)
-                        try:
-                            assert len(input_ids) == self.max_seq_length
-                        except:
-                            print(len(input_ids))
-                            print(sep_index)
-                            print(pad_index)
+                        input_ids = self.random_token(input_ids=input_ids, sep_index=sep_index, pad_index=pad_index)         
+                        tokenized_examples["labels"].append(0)
                     else:
                         # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
                         # Note: we could go after the last offset if the answer is the last word (edge case).
                         answer_token = self.tokenizer.encode(answers['text'][0])
                         input_ids[-len(answer_token)+1:] = answer_token[1:]
-                        tokenized_examples["has_answer_labels"].append(1)
+                        tokenized_examples["labels"].append(1)
                         assert len(input_ids) == self.max_seq_length
                 
         return tokenized_examples
