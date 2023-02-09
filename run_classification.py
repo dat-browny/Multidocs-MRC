@@ -119,7 +119,8 @@ def main():
     )
     # add properties to config
     config.model_architecture = model_args.model_architecture
-
+    config.num_labels = 2
+    
     tokenizer = model_architecture.tokenizer_class.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
