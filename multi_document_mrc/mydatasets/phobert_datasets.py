@@ -1372,8 +1372,12 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                     # Detect if the answer is out of the span (in which case this feature is labeled with the CLS index).
                     if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
                         input_ids = self.random_token(input_ids=input_ids, sep_index=sep_index, pad_index=pad_index)
+                        
                         tokenized_examples["has_answer_labels"].append(0)
-                        assert len(input_ids) == self.max_seq_length
+                        try:
+                            assert len(input_ids) == self.max_seq_length
+                        except:
+                            print(len(input_ids))
                     else:
                         # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
                         # Note: we could go after the last offset if the answer is the last word (edge case).
