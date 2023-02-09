@@ -1413,6 +1413,8 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
         # For evaluation, we will need to convert our predictions to substrings of the context, so we keep the
         # corresponding example_id and we will store the offset mappings.
 
+        tokenized_examples["labels"] = []
+        
         for i, input_ids in enumerate(tokenized_examples["input_ids"]):
             # Grab the sequence corresponding to that example (to know what is the context and what is the question).
             # sequence_ids = tokenized_examples.sequence_ids(i)
@@ -1443,6 +1445,7 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                         input_ids[pad_index:pad_index+len(plausible_token)] = plausible_token
                     else:
                         input_ids[-len(plausible_token):] = plausible_token
+                tokenized_examples['labels'].append(0)
             else:
                 list_ans = examples['answers'][i]['text']
                 answer_length = [len(ans.split()) for ans in list_ans]
@@ -1456,5 +1459,6 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                         input_ids[pad_index:pad_index+len(answer_token)] = answer_token
                     else:
                         input_ids[-len(answer_token):] = answer_token
+                tokenized_examples['labels'].append(1)
             assert len(input_ids) == self.max_seq_length
         return tokenized_examples
