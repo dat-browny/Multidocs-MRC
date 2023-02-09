@@ -1378,6 +1378,8 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                             assert len(input_ids) == self.max_seq_length
                         except:
                             print(len(input_ids))
+                            print(sep_index)
+                            print(pad_index)
                     else:
                         # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
                         # Note: we could go after the last offset if the answer is the last word (edge case).
