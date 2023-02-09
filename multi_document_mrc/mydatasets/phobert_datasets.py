@@ -1378,7 +1378,7 @@ class ViMRCDatasetsForPhoBERT_classification(ViMRCDatasetsForPhoBERTNoHap):
                         answer_token = self.tokenizer.encode(answers['text'][0])
                         input_ids[-len(answer_token)+1:] = answer_token[1:]
                         tokenized_examples["has_answer_labels"].append(1)
-
+                assert len(input_ids) == self.max_seq_length
         return tokenized_examples
         
     def prepare_validation_features(self, examples):

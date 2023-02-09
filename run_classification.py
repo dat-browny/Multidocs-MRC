@@ -163,8 +163,11 @@ def main():
     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
         main_process_first=training_args.main_process_first
     )
-    print(train_examples[:100])
-    print("==============================================")
-    print(eval_examples[:100])
+    # Build trainer
+    # recreate preprocess evaluate
+
+    
+
+
 if __name__ == "__main__":
     main()
