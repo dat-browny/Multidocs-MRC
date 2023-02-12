@@ -457,9 +457,6 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
 
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
-        print("================================================")
-        print(self.config.output_hidden_states)
-
         outputs = self.roberta(
             input_ids,
             attention_mask=attention_mask,
