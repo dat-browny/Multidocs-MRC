@@ -474,7 +474,7 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
             return_dict=return_dict,
         )
 
-        if self.config.add_hidden_states:
+        if self.config.add_hidden_state:
             hidden_states = outputs[2]
             x = torch.cat(tuple([hidden_states[i] for i in range(-self.num_hidden_states, 0, -1)]), dim=-1)
         else:

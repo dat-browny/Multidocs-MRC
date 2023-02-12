@@ -120,7 +120,7 @@ def main():
     # add properties to config
     config.model_architecture = model_args.model_architecture
     
-    if model_args.add_hidden_states:
+    if model_args.add_hidden_state:
         config.output_hidden_states = True
 
     tokenizer = model_architecture.tokenizer_class.from_pretrained(
