@@ -238,5 +238,5 @@ def main():
 
 #         trainer.log_metrics("predict", metrics)
 #         trainer.save_metrics("predict", metrics)
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
