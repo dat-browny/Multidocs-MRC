@@ -7,7 +7,6 @@ class ModelArguments:
     """
     Arguments pertaining to which model/config/tokenizer we are going to fine-tune from.
     """
-
     model_name_or_path: str = field(
         metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
     )
@@ -42,7 +41,8 @@ class ModelArguments:
         default=None,
         metadata={"help": "Path to model Reflection that pretrained in Classification Task"},
     )
-
+    add_hidden_state: bool = field(
+        default=False, metadata={"help": "Add hidden states to imporve classification"})
 
 @dataclass
 class DataTrainingArguments:
@@ -155,6 +155,7 @@ class DataTrainingArguments:
         default=None,
         metadata={"help": "An optional input test data dir to evaluate the perplexity on (two text files)."},
     )
+
     def __post_init__(self):
         if (
             self.dataset_name is None

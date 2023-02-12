@@ -119,124 +119,124 @@ def main():
     )
     # add properties to config
     config.model_architecture = model_args.model_architecture
-    print("================================================")
-    print(config.output_hidden_states)
-    print("====================================")
-    print(config)
-    # tokenizer = model_architecture.tokenizer_class.from_pretrained(
-    #     model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
-    #     cache_dir=model_args.cache_dir,
-    #     use_fast=True,
-    #     revision=model_args.model_revision,
-    #     use_auth_token=True if model_args.use_auth_token else None,
-    # )
+    
+    if model_args.add_hidden_states:
+        config.output_hidden_states = True
 
-    # model = model_architecture.model_class.from_pretrained(
-    #     model_args.model_name_or_path,
-    #     from_tf=bool(".ckpt" in model_args.model_name_or_path),
-    #     config=config,
-    #     cache_dir=model_args.cache_dir,
-    #     revision=model_args.model_revision,
-    #     use_auth_token=True if model_args.use_auth_token else None,
-    # )
+    tokenizer = model_architecture.tokenizer_class.from_pretrained(
+        model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
+        cache_dir=model_args.cache_dir,
+        use_fast=True,
+        revision=model_args.model_revision,
+        use_auth_token=True if model_args.use_auth_token else None,
+    )
 
-    # # Tokenizer check: this script requires a fast tokenizer.
-    # if not isinstance(tokenizer, PreTrainedTokenizerFast):
-    #     raise ValueError(
-    #         "This example script only works for models that have a fast tokenizer. Checkout the big table of models at"
-    #         " https://huggingface.co/transformers/index.html#supported-frameworks to find the model types that meet"
-    #         " this requirement"
-    #     )
+    model = model_architecture.model_class.from_pretrained(
+        model_args.model_name_or_path,
+        from_tf=bool(".ckpt" in model_args.model_name_or_path),
+        config=config,
+        cache_dir=model_args.cache_dir,
+        revision=model_args.model_revision,
+        use_auth_token=True if model_args.use_auth_token else None,
+    )
 
-#     # Datasets
-#     dataset_obj = model_architecture.dataset_class(
-#         tokenizer=tokenizer,
-#         data_args=data_args,
-#         cache_dir=model_args.cache_dir,
-#         do_train=training_args.do_train,
-#         do_eval=training_args.do_eval,
-#         do_predict=training_args.do_predict,
-#         reflection_path=model_args.reflection_path
-#     )
+    # Tokenizer check: this script requires a fast tokenizer.
+    if not isinstance(tokenizer, PreTrainedTokenizerFast):
+        raise ValueError(
+            "This example script only works for models that have a fast tokenizer. Checkout the big table of models at"
+            " https://huggingface.co/transformers/index.html#supported-frameworks to find the model types that meet"
+            " this requirement"
+        )
 
-#     train_dataset, train_examples = dataset_obj.get_train_dataset(
-#         main_process_first=training_args.main_process_first
-#     )
-#     eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
-#         main_process_first=training_args.main_process_first
-#     )
-#     predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
-#         main_process_first=training_args.main_process_first
-#     )
-#     # Build trainer
-#     # recreate preprocess evaluate
+    # Datasets
+    dataset_obj = model_architecture.dataset_class(
+        tokenizer=tokenizer,
+        data_args=data_args,
+        cache_dir=model_args.cache_dir,
+        do_train=training_args.do_train,
+        do_eval=training_args.do_eval,
+        do_predict=training_args.do_predict,
+        reflection_path=model_args.reflection_path
+    )
 
-#     data_collator = (
-#         default_data_collator
-#         if data_args.pad_to_max_length
-#         else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
-#     )
+    train_dataset, train_examples = dataset_obj.get_train_dataset(
+        main_process_first=training_args.main_process_first
+    )
+    eval_dataset, eval_examples = dataset_obj.get_eval_dataset(
+        main_process_first=training_args.main_process_first
+    )
+    predict_dataset, predict_examples = dataset_obj.get_predict_dataset(
+        main_process_first=training_args.main_process_first
+    )
+    # Build trainer
+    # recreate preprocess evaluate
 
-#     metric = evaluate.load("f1")    
+    data_collator = (
+        default_data_collator
+        if data_args.pad_to_max_length
+        else DataCollatorWithPadding(tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None)
+    )
 
-#     def compute_metrics(p: EvalPrediction):
-#         p.predictions = [np.argmax(pred) for pred in p.predictions]
-#         print("\n")
-#         print(classification_report(p.label_ids, p.predictions, labels=[0,1]))
-#         return metric.compute(predictions=p.predictions, references=p.label_ids)
+    metric = evaluate.load("f1")    
 
-#     trainer = Trainer(
-#         model=model,
-#         args=training_args,
-#         train_dataset=train_dataset if training_args.do_train else None,
-#         eval_dataset=eval_dataset if training_args.do_eval else None,
-#         tokenizer=tokenizer,
-#         data_collator=data_collator,
-#         compute_metrics=compute_metrics,       
-#     )
+    def compute_metrics(p: EvalPrediction):
+        p.predictions = [np.argmax(pred) for pred in p.predictions]
+        print("\n")
+        print(classification_report(p.label_ids, p.predictions, labels=[0,1]))
+        return metric.compute(predictions=p.predictions, references=p.label_ids)
 
-#     if training_args.do_train:
-#         checkpoint = None
-#         if training_args.resume_from_checkpoint is not None:
-#             checkpoint = training_args.resume_from_checkpoint
-#         elif last_checkpoint is not None:
-#             checkpoint = last_checkpoint
-#         train_result = trainer.train(resume_from_checkpoint=checkpoint)
-#         trainer.save_model()  # Saves the tokenizer too for easy upload
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset if training_args.do_train else None,
+        eval_dataset=eval_dataset if training_args.do_eval else None,
+        tokenizer=tokenizer,
+        data_collator=data_collator,
+        compute_metrics=compute_metrics,       
+    )
 
-#         metrics = train_result.metrics
-#         max_train_samples = (
-#             data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
-#         )
-#         metrics["train_samples"] = min(max_train_samples, len(train_dataset))
+    if training_args.do_train:
+        checkpoint = None
+        if training_args.resume_from_checkpoint is not None:
+            checkpoint = training_args.resume_from_checkpoint
+        elif last_checkpoint is not None:
+            checkpoint = last_checkpoint
+        train_result = trainer.train(resume_from_checkpoint=checkpoint)
+        trainer.save_model()  # Saves the tokenizer too for easy upload
 
-#         trainer.log_metrics("train", metrics)
-#         trainer.save_metrics("train", metrics)
-#         trainer.save_state()
+        metrics = train_result.metrics
+        max_train_samples = (
+            data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
+        )
+        metrics["train_samples"] = min(max_train_samples, len(train_dataset))
 
-#     # Evaluation
-#     if training_args.do_eval:
-#         logger.info("*** Evaluate ***")
-#         metrics = trainer.evaluate()
+        trainer.log_metrics("train", metrics)
+        trainer.save_metrics("train", metrics)
+        trainer.save_state()
 
-#         max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
-#         metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
+    # Evaluation
+    if training_args.do_eval:
+        logger.info("*** Evaluate ***")
+        metrics = trainer.evaluate()
 
-#         trainer.log_metrics("eval", metrics)
-#         trainer.save_metrics("eval", metrics)
+        max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
+        metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
 
-#     # Prediction
-#     if training_args.do_predict:
-#         logger.info("*** Predict ***")
-#         results = trainer.predict(predict_dataset, predict_examples)
-#         metrics = results.metrics
+        trainer.log_metrics("eval", metrics)
+        trainer.save_metrics("eval", metrics)
 
-#         max_predict_samples = (
-#             data_args.max_predict_samples if data_args.max_predict_samples is not None else len(predict_dataset)
-#         )
-#         metrics["predict_samples"] = min(max_predict_samples, len(predict_dataset))
+    # Prediction
+    if training_args.do_predict:
+        logger.info("*** Predict ***")
+        results = trainer.predict(predict_dataset, predict_examples)
+        metrics = results.metrics
 
-#         trainer.log_metrics("predict", metrics)
-#         trainer.save_metrics("predict", metrics)
+        max_predict_samples = (
+            data_args.max_predict_samples if data_args.max_predict_samples is not None else len(predict_dataset)
+        )
+        metrics["predict_samples"] = min(max_predict_samples, len(predict_dataset))
+
+        trainer.log_metrics("predict", metrics)
+        trainer.save_metrics("predict", metrics)
 if __name__ == "__main__":
     main()
