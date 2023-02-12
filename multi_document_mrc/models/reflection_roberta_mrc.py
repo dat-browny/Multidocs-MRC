@@ -456,7 +456,10 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
     ) -> Union[Tuple[torch.Tensor], SequenceClassifierOutput]:
 
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
-        
+
+        print("================================================")
+        print(self.config.output_hidden_states)
+
         outputs = self.roberta(
             input_ids,
             attention_mask=attention_mask,
@@ -468,6 +471,7 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
         )
+        #sequence output == last hidden states of RoBERTa model .
         sequence_output = outputs[0]
         x = sequence_output[:, 0, :] #take <s> token of a batch => dim [batch_size, 1, num_hidden_state]
         x = self.dropout(x)
