@@ -471,7 +471,7 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
             inputs_embeds=inputs_embeds,
             output_attentions=output_attentions,
             return_dict=return_dict,
-            output_hidden_states=self.config.get_output_hidden_states,
+            output_hidden_states=self.config.output_hidden_states,
         )
 
         if self.config.output_hidden_states:

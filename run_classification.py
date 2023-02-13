@@ -122,6 +122,8 @@ def main():
     
     if model_args.add_hidden_state:
         config.output_hidden_states = True
+    else:
+        config.output_hidden_states = False
 
     tokenizer = model_architecture.tokenizer_class.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
