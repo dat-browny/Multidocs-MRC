@@ -476,9 +476,11 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
 
         if self.config.output_hidden_states:
             hidden_states = outputs.hidden_states
+            print("================================================")
             print(len(outputs))
             print(hidden_states)
-            x = torch.cat(tuple([hidden_states[i] for i in range(-self.num_hidden_states, 0, -1)]), dim=-1)
+            print("==============================")
+            x = torch.cat(tuple([hidden_states[i] for i in [-self.num_hidden_states, 0, -1]]), dim=-1)
         else:
         #sequence output == last hidden states of RoBERTa model .
             sequence_output = outputs[0]
