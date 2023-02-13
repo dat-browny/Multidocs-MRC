@@ -437,7 +437,7 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
 
         self.num_hidden_states = 4
         self.dropout = nn.Dropout(classifier_dropout)
-        if self.config.add_hidden_states:
+        if self.config.add_hidden_state:
             self.classifier = nn.Linear(config.hidden_size*self.num_hidden_states, config.num_labels)
             self.dense = nn.Linear(config.hidden_size*self.num_hidden_states, config.hidden_size*self.num_hidden_states)
         else:
