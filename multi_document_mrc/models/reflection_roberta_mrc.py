@@ -437,7 +437,7 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
 
         self.num_hidden_states = 4
         self.dropout = nn.Dropout(classifier_dropout)
-        if self.config.add_hidden_state:
+        if self.config.hidden_state:
             self.classifier = nn.Linear(config.hidden_size*self.num_hidden_states, config.num_labels)
             self.dense = nn.Linear(config.hidden_size*self.num_hidden_states, config.hidden_size*self.num_hidden_states)
         else:
@@ -474,7 +474,7 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
             return_dict=return_dict,
         )
 
-        if self.config.add_hidden_state:
+        if self.config.hidden_state:
             hidden_states = outputs[2]
             x = torch.cat(tuple([hidden_states[i] for i in range(-self.num_hidden_states, 0, -1)]), dim=-1)
         else:
