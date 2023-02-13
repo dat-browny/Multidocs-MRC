@@ -470,7 +470,6 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
             head_mask=head_mask,
             inputs_embeds=inputs_embeds,
             output_attentions=output_attentions,
-            output_hidden_states=output_hidden_states,
             return_dict=return_dict,
             output_hidden_states=self.config.get_output_hidden_states,
         )
