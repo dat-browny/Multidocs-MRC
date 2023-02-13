@@ -478,7 +478,8 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
             hidden_states = outputs.hidden_states
             print("================================================")
             print(len(outputs))
-            print(hidden_states)
+            for i in range(len(hidden_states)):
+                print(hidden_states[i].shape)
             print("==============================")
             x = torch.cat(tuple([hidden_states[i] for i in [-self.num_hidden_states, 0, -1]]), dim=-1)
         else:
