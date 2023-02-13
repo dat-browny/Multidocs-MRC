@@ -479,6 +479,7 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
             x = torch.cat(tuple([hidden_states[i] for i in range(-self.num_hidden_states, 0, -1)]), dim=-1)
         else:
         #sequence output == last hidden states of RoBERTa model .
+            print(type(outputs))
             sequence_output = outputs[0]
             x = sequence_output[:, 0, :] #take <s> token of a batch => dim [batch_size, 1, num_hidden_state]
         x = self.dropout(x)
