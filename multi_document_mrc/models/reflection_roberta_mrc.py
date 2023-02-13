@@ -473,7 +473,7 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
             return_dict=return_dict,
             output_hidden_states=self.config.output_hidden_states,
         )
-        print(outputs.shape)
+
         if self.config.output_hidden_states:
             hidden_states = outputs.hidden_states
             x = torch.cat(tuple([hidden_states[i] for i in range(-self.num_hidden_states, 0, -1)]), dim=-1)
