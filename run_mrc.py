@@ -186,7 +186,9 @@ def main():
             predict_data['head_feature'] = []
             predict_data['ans_type_ids'] = []
             formated_prediction = []
-
+            print("================================================")
+            print(p.predictions[1:3])
+            print("================================================")
             for key, value in p.predictions.items():
                 ids.append(key)
                 text.append(value['text'])
