@@ -186,16 +186,18 @@ def main():
             predict_data['head_feature'] = []
             predict_data['ans_type_ids'] = []
             formated_prediction = []
-            print("================================================")
-            print(p.predictions)
-            print("================================================")
+            # print("================================================")
+            # print(p.predictions)
+            # print("================================================")
             for key, value in p.predictions.items():
                 ids.append(key)
                 text.append(value['text'])
-                predict_data['input_ids'].append(value['input_ids'])
-                predict_data['head_feature'].append(value['head_feature'])
-                predict_data['ans_type_ids'].append(value['ans_type_ids'])
-
+                try:
+                    predict_data['input_ids'].append(value['input_ids'])
+                    predict_data['head_feature'].append(value['head_feature'])
+                    predict_data['ans_type_ids'].append(value['ans_type_ids'])
+                except:
+                    print(1)
             na_prob = []
             predict_data = datasets.Dataset.from_dict(predict_data)
             batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16, shuffle=False)
