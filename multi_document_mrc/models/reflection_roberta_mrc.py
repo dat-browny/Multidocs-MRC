@@ -471,21 +471,21 @@ class RobertaForMRCClassification(RobertaPreTrainedModel):
             inputs_embeds=inputs_embeds,
             output_attentions=output_attentions,
             return_dict=return_dict,
-            output_hidden_states=self.config.output_hidden_states,
+            output_hidden_states=output_hidden_states,
         )
 
-        if self.config.output_hidden_states:
-            hidden_states = outputs.hidden_states
-            print("================================================")
-            print(len(outputs))
-            for i in range(len(hidden_states)):
-                print(hidden_states[i].shape)
-            print("==============================")
-            x = torch.cat(tuple([hidden_states[i] for i in [-self.num_hidden_states, 0, -1]]), dim=-1)
-        else:
+        # if self.config.output_hidden_states:
+        #     hidden_states = outputs.hidden_states
+        #     print("================================================")
+        #     print(len(outputs))
+        #     for i in range(len(hidden_states)):
+        #         print(hidden_states[i].shape)
+        #     print("==============================")
+        #     x = torch.cat(tuple([hidden_states[i] for i in [-self.num_hidden_states, 0, -1]]), dim=-1)
+        # else:
         #sequence output == last hidden states of RoBERTa model .
-            sequence_output = outputs[0]
-            x = sequence_output[:, 0, :] #take <s> token of a batch => dim [batch_size, 1, num_hidden_state]
+        sequence_output = outputs[0]
+        x = sequence_output[:, 0, :] #take <s> token of a batch => dim [batch_size, 1, num_hidden_state]
         x = self.dropout(x)
         x = self.dense(x)
         x = torch.tanh(x)
