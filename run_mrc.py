@@ -197,7 +197,7 @@ def main():
                     predict_data['head_feature'].append(value['head_feature'])
                     predict_data['ans_type_ids'].append(value['ans_type_ids'])
                 except:
-                    print(1)
+                    print(value)
             na_prob = []
             predict_data = datasets.Dataset.from_dict(predict_data)
             batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16, shuffle=False)
