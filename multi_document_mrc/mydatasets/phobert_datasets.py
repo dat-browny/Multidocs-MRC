@@ -1025,8 +1025,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         }
             elif len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and not is_training_reflection:
                 all_predictions[example["id"]] = {"text": "", 
-                            "start_positions": 0,
-                            "end_positions": 0,
+                            "input_ids": features[feature_index]['input_ids'],
                             "head_features": head_feature,
                             "feature_index": feature_index,
                             "na_probs": na_prob}
