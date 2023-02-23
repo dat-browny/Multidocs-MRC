@@ -1024,11 +1024,15 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             "na_probs": na_prob
                         }
             elif len(predictions) == 0 or (len(predictions) == 1 and predictions[0]["text"] == "") and not is_training_reflection:
+                input_ids = features[feature_index]['input_ids']
+                ans_type_ids = [0]*len(input_ids)
+                ans_type_ids[0] = 1
                 all_predictions[example["id"]] = {"text": "", 
-                            "input_ids": features[feature_index]['input_ids'],
+                            "input_ids": input_ids,
                             "head_features": head_feature,
                             "feature_index": feature_index,
-                            "na_probs": na_prob}
+                            "na_probs": na_prob,
+                            "ans_type_ids": ans_type_ids}
             else:
             # Pick the best prediction. If the null answer is not possible, this is easy.
                 if not version_2_with_negative:
@@ -1049,6 +1053,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             "head_features": head_feature,
                             "feature_index": feature_index,
                             "na_probs": na_prob
+                            
                         }
                     else:
                         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -1056,7 +1061,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         end_index = best_non_null_pred['end_index']
                         input_ids = features[feature_index]['input_ids']
                         ans_type_ids = torch.tensor([0]*len(input_ids), device=device)
-                        if na_prob > 0.5:
+                        if na_prob < 0.5:
                             ans_type_ids[0] = 2
                             ans_type_ids[start_index] = 3
                             ans_type_ids[start_index+1:end_index+1] = 4
@@ -1067,7 +1072,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                             "text": best_non_null_pred["text"],
                             "input_ids": input_ids,
                             "head_feature": head_feature.tolist(),
-                            "ans_type_ids": ans_type_ids.tolist()
+                            "ans_type_ids": ans_type_ids.tolist(),
                         }
 
             # Make `predictions` JSON-serializable by casting np.float back to float.

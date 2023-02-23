@@ -186,13 +186,6 @@ def main():
             predict_data['head_feature'] = []
             predict_data['ans_type_ids'] = []
             formated_prediction = []
-<<<<<<< HEAD
-            # print("================================================")
-            # print(p.predictions)
-            # print("================================================")
-=======
-
->>>>>>> eb936b3 (Debug MRC)
             for key, value in p.predictions.items():
                 ids.append(key)
                 text.append(value['text'])
