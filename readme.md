@@ -29,7 +29,7 @@ Thay đổi các tham số model_path, data_path, .. trong file `./run_train.sh`
 #### 2.2.2. Model Refection
 Ban đầu, huấn luyện mô hình MRC từ pretrain PhoBert base
 ```bash
-python3 run_mrc.py \
+!python3 run_mrc.py \
     --model_name_or_path vinai/phobert-base \
     --model_architecture phobert-qa-mrc-block \
     --output_dir ./phobert-base-mrc-lr5e5-bs32-e15 \
@@ -43,7 +43,7 @@ python3 run_mrc.py \
     --save_total_limit 1
 ```
 Tiếp theo, dùng mô hình MRC để huấn luyện mô hình Reflection, gồm hai bước: tạo data training mô hình Reflection và training mô hình Reflection.
-```bashion
+```bash
 !python3 inference_reflection_data.py \
     --model_name_or_path vinai/phobert-base \
     --model_architecture phobert-qa-reflection-block \
