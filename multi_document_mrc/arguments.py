@@ -155,7 +155,9 @@ class DataTrainingArguments:
         default=None,
         metadata={"help": "An optional input test data dir to evaluate the perplexity on (two text files)."},
     )
-
+    question: Optional[str] = field(default=None, metadata={"help": "For inference single value"})
+    context: Optional[str] = field(default=None, metadata={"help": "For inference single value"})
+    inference: Optional[str] = field(default=None, metadata={"help":"For inference single value"})
     def __post_init__(self):
         if (
             self.dataset_name is None
