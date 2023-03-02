@@ -1071,7 +1071,7 @@ class ViMRCDatasetsForPhoBERTNoHapReflection(ViMRCDatasetsForPhoBERT):
                         all_predictions[example["id"]] = {
                             "text": best_non_null_pred["text"],
                             "input_ids": input_ids,
-                            "head_feature": head_feature.tolist(),
+                            "head_features": head_feature.tolist(),
                             "ans_type_ids": ans_type_ids.tolist(),
                         }
 

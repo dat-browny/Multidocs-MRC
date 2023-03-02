@@ -191,7 +191,7 @@ def main():
                 text.append(value['text'])
                 try:
                     predict_data['input_ids'].append(value['input_ids'])
-                    predict_data['head_feature'].append(value['head_feature'])
+                    predict_data['head_features'].append(value['head_features'])
                     predict_data['ans_type_ids'].append(value['ans_type_ids'])
                 except:
                     print(value)
@@ -200,7 +200,7 @@ def main():
             batch_data = DataLoader(predict_data.with_format("torch"), batch_size=16, shuffle=False)
             model_reflection.to(device)
             for batch in tqdm(batch_data):
-                batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_feature'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
+                batch_na_probs = model_reflection(input_ids=batch['input_ids'].to(device),  head_features=batch['head_features'].to(device), ans_type_ids=batch['ans_type_ids'].to(device))['ans_type_probs'].tolist()
                 na_prob += batch_na_probs
             
             for id, prob in enumerate(na_prob):
