@@ -52,7 +52,8 @@ def convert_to_instance(trainer, tokenizer, examples, tokenized_data, model_name
             no_ans_data["offset_mapping"].append(tokenized_data_dict["offset_mapping"][id])
 
 
-    tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'start_positions', 'end_positions', 'has_answer_labels'])
+    tokenized_data = tokenized_data.map(remove_columns=['offset_mapping', 'start_positions', 'end_positions', 'has_answer_labels'])\
+    
     predictions = trainer.inference(dataset=trainer.get_eval_dataloader(tokenized_data))
 
     # for key, value in predictions.items():
