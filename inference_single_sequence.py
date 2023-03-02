@@ -129,7 +129,7 @@ def main():
         padding="max_length",
     )
     
-    print(model(*tokenized_data))
+    print(model(input_ids=tokenized_data['input_ids']))
 
 if __name__ == "__main__":
     main()
