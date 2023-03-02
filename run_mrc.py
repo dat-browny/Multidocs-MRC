@@ -183,7 +183,7 @@ def main():
             ids = []
             text = []
             predict_data['input_ids'] = []
-            predict_data['head_feature'] = []
+            predict_data['head_features'] = []
             predict_data['ans_type_ids'] = []
             formated_prediction = []
             for key, value in p.predictions.items():
