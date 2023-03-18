@@ -138,9 +138,18 @@ def main():
     start_logits = output_mrc['start_logits']
     end_logits = output_mrc['end_logits']
     answer_output_id = torch.argmax(output_mrc['score'].squeeze())
-    print(answer_output_id)
-    print(start_logits[answer_output_id])
+    
+    start_id = torch.argmax(start_logits[answer_output_id])
+    end_id = torch.argmax(end_logits[answer_output_id])
 
-    print(offsets_mapping[answer_output_id])
+    print(f'Câu hỏi: {data_args.question}')
+    print(f'Nội dung cho trước: {data_args.context}')
+    if start_id >= end_id:
+        print('Không có câu trả lời')
+    else:
+        mapping = offsets_mapping[answer_output_id]
+        print(f'Câu trả lời: {data_args.context[mapping[start_id][0]: mapping[end_id][1]]}')        
+
+
 if __name__ == "__main__":
     main()
