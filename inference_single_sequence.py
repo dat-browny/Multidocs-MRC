@@ -50,34 +50,34 @@ def main():
         handlers=[logging.StreamHandler(sys.stdout)],
     )
 
-    log_level = training_args.get_process_log_level()
-    logger.setLevel(log_level)
-    datasets.utils.logging.set_verbosity(log_level)
-    transformers.utils.logging.set_verbosity(log_level)
-    transformers.utils.logging.enable_default_handler()
-    transformers.utils.logging.enable_explicit_format()
+    # log_level = training_args.get_process_log_level()
+    # logger.setLevel(log_level)
+    # datasets.utils.logging.set_verbosity(log_level)
+    # transformers.utils.logging.set_verbosity(log_level)
+    # transformers.utils.logging.enable_default_handler()
+    # transformers.utils.logging.enable_explicit_format()
 
-    # Log on each process the small summary:
-    logger.warning(
-        f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}"
-        + f"distributed training: {bool(training_args.local_rank != -1)}, 16-bits training: {training_args.fp16}"
-    )
-    logger.info(f"Training/evaluation parameters {training_args}")
+    # # Log on each process the small summary:
+    # logger.warning(
+    #     f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}"
+    #     + f"distributed training: {bool(training_args.local_rank != -1)}, 16-bits training: {training_args.fp16}"
+    # )
+    # logger.info(f"Training/evaluation parameters {training_args}")
 
-    # Detecting last checkpoint.
-    last_checkpoint = None
-    if os.path.isdir(training_args.output_dir) and training_args.do_train and not training_args.overwrite_output_dir:
-        last_checkpoint = get_last_checkpoint(training_args.output_dir)
-        if last_checkpoint is None and len(os.listdir(training_args.output_dir)) > 0:
-            raise ValueError(
-                f"Output directory ({training_args.output_dir}) already exists and is not empty. "
-                "Use --overwrite_output_dir to overcome."
-            )
-        elif last_checkpoint is not None and training_args.resume_from_checkpoint is None:
-            logger.info(
-                f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
-                "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
-            )
+    # # Detecting last checkpoint.
+    # last_checkpoint = None
+    # if os.path.isdir(training_args.output_dir) and training_args.do_train and not training_args.overwrite_output_dir:
+    #     last_checkpoint = get_last_checkpoint(training_args.output_dir)
+    #     if last_checkpoint is None and len(os.listdir(training_args.output_dir)) > 0:
+    #         raise ValueError(
+    #             f"Output directory ({training_args.output_dir}) already exists and is not empty. "
+    #             "Use --overwrite_output_dir to overcome."
+    #         )
+    #     elif last_checkpoint is not None and training_args.resume_from_checkpoint is None:
+    #         logger.info(
+    #             f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
+    #             "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
+    #         )
 
     # Set seed before initializing model.
     set_seed(training_args.seed)
@@ -131,7 +131,12 @@ def main():
     )
     
     input = {k: torch.tensor(v) for k, v in tokenized_data.items() if k != 'overflow_to_sample_mapping'}
-    print(model(**input))
-
+    output_mrc = model(**input)
+    start_logits = output_mrc['start_logits']
+    end_logits = output_mrc['end_logits']
+    answer_output_id = torch.argmax(output_mrc['score'].squeeze())
+    print(answer_output_id)
+    print(start_logits[answer_output_id])
+    
 if __name__ == "__main__":
     main()
