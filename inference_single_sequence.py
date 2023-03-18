@@ -140,9 +140,10 @@ def main():
     
     start_id = torch.argmax(start_logits[answer_output_id])
     end_id = torch.argmax(end_logits[answer_output_id])
-
-    print(f'Câu hỏi: {data_args.question}')
     print(f'Nội dung cho trước: {data_args.context}')
+    print('\n')
+    print(f'Câu hỏi: {data_args.question}')
+    print('\n')
     if start_id >= end_id:
         print('Không có câu trả lời')
     else:
