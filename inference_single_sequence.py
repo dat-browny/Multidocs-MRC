@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import json
+import torch
 import datasets
 import evaluate
 import transformers
@@ -129,7 +130,8 @@ def main():
         padding="max_length",
     )
     
-    print(tokenized_data.keys())
+    input = {k: torch.tensor(v) for k, v in tokenized_data.items() if k != 'overflow_to_sample_mapping'}
+    print(model(**input))
 
 if __name__ == "__main__":
     main()
