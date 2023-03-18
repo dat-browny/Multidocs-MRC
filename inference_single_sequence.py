@@ -130,7 +130,7 @@ def main():
         return_offsets_mapping=True,
         padding="max_length",
     )
-    
+    print(tokenized_data)
     offsets_mapping = tokenized_data.pop('offsets_mapping')
 
     input = {k: torch.tensor(v) for k, v in tokenized_data.items() if k != 'overflow_to_sample_mapping'}
