@@ -127,9 +127,12 @@ def main():
         max_length=256,
         stride=128,
         return_overflowing_tokens=True,
+        return_offsets_mapping=True,
         padding="max_length",
     )
     
+    offsets_mapping = tokenized_data.pop('offsets_mapping')
+
     input = {k: torch.tensor(v) for k, v in tokenized_data.items() if k != 'overflow_to_sample_mapping'}
     output_mrc = model(**input)
     start_logits = output_mrc['start_logits']
@@ -137,6 +140,7 @@ def main():
     answer_output_id = torch.argmax(output_mrc['score'].squeeze())
     print(answer_output_id)
     print(start_logits[answer_output_id])
-    
+
+    print(offsets_mapping[answer_output_id])
 if __name__ == "__main__":
     main()
